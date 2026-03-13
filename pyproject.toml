@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools >= 64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "soma_retargeter"
+dynamic = ["version"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "licenses/**/*.txt"]
+requires-python = ">=3.12"
+dependencies = [
+    "newton==1.0.0",
+    "warp-lang==1.12.0",
+    "typing_extensions==4.15.0",
+    "pyglet==2.1.13",
+    "numpy==2.4.3",
+    "GitPython==3.1.46",
+    "trimesh==4.11.3",
+    "imgui-bundle==1.92.4",
+    "usd-core==26.3",
+    "scipy==1.17.1",
+    "tqdm==4.67.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["soma_retargeter*"]
+exclude = ["app*", "assets*", "submodules*"]
+
+[tool.setuptools.package-data]
+soma_retargeter = ["configs/**/*.json", "configs/**/*.bvh", "configs/**/*.usd"]
+
+[tool.setuptools.dynamic]
+version = { attr = "soma_retargeter.__version__" }
+
+[tool.uv]
+prerelease = "allow"
+
+[tool.uv.sources]
+warp-lang = { index = "nvidia" }
+
+[[tool.uv.index]]
+name = "nvidia"
+url = "https://pypi.nvidia.com"
+explicit = true

@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "BVH To CSV [Viewer Mode]",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/app/bvh_to_csv_converter.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "${workspaceFolder}/assets/default_bvh_to_csv_converter_config.json",
+                "--viewer", "gl"]
+        },
+        {
+            "name": "BVH To CSV [Batch Mode]",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/app/bvh_to_csv_converter.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "${workspaceFolder}/assets/default_bvh_to_csv_converter_config.json",
+                "--viewer", "null"]
+        }
+    ]
+}
