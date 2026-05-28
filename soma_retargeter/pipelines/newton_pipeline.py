@@ -69,53 +69,58 @@ class NewtonPipeline:
         self.smooth_joint_filter_coord_masks = None
         self.joint_limit_clamper = None
 
-        if (self.target_type == pipeline_utils.TargetType.UNITREE_G1):
+        if self.target_type == pipeline_utils.TargetType.UNITREE_G1:
             self.robot_builder = newton.ModelBuilder()
             self.robot_builder.add_mjcf(
                 newton.utils.download_asset("unitree_g1") / "mjcf/g1_29dof_rev_1_0.xml")
-
-            self.human_robot_scaler = HumanToRobotScaler(
-                skeleton, retargeter_config['model_height'], io_utils.get_config_file(retargeter_config['human_robot_scaler_config']))
-
-            self.num_body_count = self.robot_builder.body_count
-            self.num_dofs = self.robot_builder.joint_dof_count
-            self.ik_model = self._build_model(1)
-
-            (
-                self.mapped_joints,
-                self.mapped_joint_indices,
-                self.mapped_body_link_pos_data,
-                self.mapped_body_link_rot_data
-            ) = self._build_target_mapping(
-                self.ik_model,
-                self.human_robot_scaler.skeleton,
-                retargeter_config)
-
-            smooth_joint_filter_objective_body_masks = retargeter_config.get('smooth_joint_filter_objective_body_masks', None)
-            if smooth_joint_filter_objective_body_masks is not None:
-                self.smooth_joint_filter_coord_masks = newton_utils.create_joint_coord_masks(
-                    self.ik_model, smooth_joint_filter_objective_body_masks, 0.0)
-
-            effector_names = self.human_robot_scaler.effector_names()
-            self.target_effector_indices = [effector_names.index(name) for name in self.mapped_joints]
-            self.feet_effector_indices = [
-                self.mapped_joints.index("LeftFoot"),
-                self.mapped_joints.index("RightFoot")]
-
-            self.feet_stabilizer = FeetStabilizer(io_utils.get_config_file(retargeter_config['feet_stabilizer_config']))
-            self.joint_limit_clamper = JointLimitClamper(self.ik_model)
-
-            self.initialization_pose = None
-            self.num_initialization_frames = 0
-            self.num_stabilization_frames = 0
-            if (retargeter_config['initialization_pose']):
-                init_skel, init_anim = bvh_utils.load_bvh(io_utils.get_config_file(retargeter_config['initialization_pose']))
-                self.initialization_pose = SkeletonInstance(init_skel, [0, 0, 0], wp.transform_identity())
-                self.initialization_pose.set_local_transforms(init_anim.get_local_transforms(0))
-                self.num_initialization_frames = retargeter_config.get('num_initialization_frames', _DEFAULT_NUM_INITIALIZATION_FRAMES)
-                self.num_stabilization_frames = retargeter_config.get('num_stabilization_frames', _DEFAULT_NUM_STABILIZATION_FRAMES)
+        elif self.target_type == pipeline_utils.TargetType.BOOSTER_K1:
+            self.robot_builder = newton.ModelBuilder()
+            k1_mjcf = io_utils.get_package_root().parent / "booster-k1" / "k1.xml"
+            self.robot_builder.add_mjcf(k1_mjcf)
+            newton_utils.apply_mjcf_keyframe_qpos(self.robot_builder, k1_mjcf)
         else:
             raise ValueError("Unsupported robot type.")
+
+        self.human_robot_scaler = HumanToRobotScaler(
+            skeleton, retargeter_config['model_height'], io_utils.get_config_file(retargeter_config['human_robot_scaler_config']))
+
+        self.num_body_count = self.robot_builder.body_count
+        self.num_dofs = self.robot_builder.joint_dof_count
+        self.ik_model = self._build_model(1)
+
+        (
+            self.mapped_joints,
+            self.mapped_joint_indices,
+            self.mapped_body_link_pos_data,
+            self.mapped_body_link_rot_data
+        ) = self._build_target_mapping(
+            self.ik_model,
+            self.human_robot_scaler.skeleton,
+            retargeter_config)
+
+        smooth_joint_filter_objective_body_masks = retargeter_config.get('smooth_joint_filter_objective_body_masks', None)
+        if smooth_joint_filter_objective_body_masks is not None:
+            self.smooth_joint_filter_coord_masks = newton_utils.create_joint_coord_masks(
+                self.ik_model, smooth_joint_filter_objective_body_masks, 0.0)
+
+        effector_names = self.human_robot_scaler.effector_names()
+        self.target_effector_indices = [effector_names.index(name) for name in self.mapped_joints]
+        self.feet_effector_indices = [
+            self.mapped_joints.index("LeftFoot"),
+            self.mapped_joints.index("RightFoot")]
+
+        self.feet_stabilizer = FeetStabilizer(io_utils.get_config_file(retargeter_config['feet_stabilizer_config']))
+        self.joint_limit_clamper = JointLimitClamper(self.ik_model)
+
+        self.initialization_pose = None
+        self.num_initialization_frames = 0
+        self.num_stabilization_frames = 0
+        if (retargeter_config['initialization_pose']):
+            init_skel, init_anim = bvh_utils.load_bvh(io_utils.get_config_file(retargeter_config['initialization_pose']))
+            self.initialization_pose = SkeletonInstance(init_skel, [0, 0, 0], wp.transform_identity())
+            self.initialization_pose.set_local_transforms(init_anim.get_local_transforms(0))
+            self.num_initialization_frames = retargeter_config.get('num_initialization_frames', _DEFAULT_NUM_INITIALIZATION_FRAMES)
+            self.num_stabilization_frames = retargeter_config.get('num_stabilization_frames', _DEFAULT_NUM_STABILIZATION_FRAMES)
 
     def clear(self):
         """

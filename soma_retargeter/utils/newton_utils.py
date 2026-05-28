@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
 import warp as wp
 import numpy as np
 
@@ -28,6 +31,63 @@ def create_child_parent_map(model):
         child_index = joint_child[i]
         child_parent_map[child_index] = parent_index
     return child_parent_map
+
+
+def load_mjcf_keyframe_qpos(mjcf_path, key_name: str = "ik_seed"):
+    """
+    Load a named MJCF keyframe qpos vector and convert quaternion coordinates to
+    Newton's internal order.
+
+    Args:
+        mjcf_path: Path to the MJCF file.
+        key_name (str): Name of the keyframe to load.
+
+    Returns:
+        numpy.ndarray | None: The parsed qpos vector, or None if the keyframe is
+            not present.
+    """
+    root = ET.parse(Path(mjcf_path)).getroot()
+    keyframe_root = root.find("keyframe")
+    if keyframe_root is None:
+        return None
+
+    key = keyframe_root.find(f"./key[@name='{key_name}']")
+    if key is None:
+        return None
+
+    qpos_attr = key.get("qpos", "")
+    qpos = np.fromstring(qpos_attr, sep=" ", dtype=np.float32)
+    if qpos.size == 0 and qpos_attr.strip():
+        raise ValueError(f"[ERROR]: Failed to parse qpos for MJCF keyframe '{key_name}' in {mjcf_path}")
+
+    _convert_mjcf_qpos_quaternions_to_newton_order(root, qpos)
+    return qpos
+
+
+def apply_mjcf_keyframe_qpos(builder, mjcf_path, key_name: str = "ik_seed") -> bool:
+    """
+    Apply a named MJCF keyframe pose to a Newton ``ModelBuilder``.
+
+    Args:
+        builder: Newton model builder whose ``joint_q`` should be seeded.
+        mjcf_path: Path to the MJCF file.
+        key_name (str): Name of the keyframe to apply.
+
+    Returns:
+        bool: True when the keyframe exists and was applied, False otherwise.
+    """
+    qpos = load_mjcf_keyframe_qpos(mjcf_path, key_name=key_name)
+    if qpos is None:
+        return False
+
+    if qpos.size != len(builder.joint_q):
+        raise ValueError(
+            f"[ERROR]: MJCF keyframe '{key_name}' has {qpos.size} qpos values, "
+            f"but the Newton builder expects {len(builder.joint_q)}."
+        )
+
+    builder.joint_q[:] = qpos.tolist()
+    return True
 
 
 def create_joint_coord_masks(model, active_body_masks, default_mask_fill_value):
@@ -59,6 +119,45 @@ def create_joint_coord_masks(model, active_body_masks, default_mask_fill_value):
         mask_np[start_idx:start_idx+dim] = value
 
     return mask_np
+
+
+def _convert_mjcf_qpos_quaternions_to_newton_order(root: ET.Element, qpos: np.ndarray) -> None:
+    """
+    Convert MJCF qpos quaternion coordinates from ``wxyz`` to Newton's ``xyzw``
+    order in-place.
+
+    Args:
+        root: Parsed MJCF root element.
+        qpos: Mutable qpos vector.
+    """
+    offset = 0
+    worldbody = root.find("worldbody")
+    if worldbody is None:
+        return
+
+    def visit_body(body: ET.Element):
+        nonlocal offset
+
+        for _ in body.findall("freejoint"):
+            qpos[offset + 3:offset + 7] = qpos[[offset + 4, offset + 5, offset + 6, offset + 3]]
+            offset += 7
+
+        for joint in body.findall("joint"):
+            joint_type = joint.get("type", "hinge")
+            if joint_type == "free":
+                qpos[offset + 3:offset + 7] = qpos[[offset + 4, offset + 5, offset + 6, offset + 3]]
+                offset += 7
+            elif joint_type == "ball":
+                qpos[offset:offset + 4] = qpos[[offset + 1, offset + 2, offset + 3, offset]]
+                offset += 4
+            elif joint_type != "fixed":
+                offset += 1
+
+        for child in body.findall("body"):
+            visit_body(child)
+
+    for body in worldbody.findall("body"):
+        visit_body(body)
 
 
 def create_buffer_with_initialization_frames(

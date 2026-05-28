@@ -32,24 +32,29 @@ class FeetStabilizer:
             self.robot_builder = newton.ModelBuilder()
             self.robot_builder.add_mjcf(
                 newton.utils.download_asset("unitree_g1") / "mjcf/g1_29dof_rev_1_0.xml")
-
-            self.num_body_count = self.robot_builder.body_count
-            self.ik_model = self._build_model(1)
-
-            body_names = [newton_utils.get_name_from_label(label) for label in self.robot_builder.body_label]
-            self.effector_mapped_indices = [body_names.index(body_name) for (body_name, _) in self.effectors.items()]
-            self.effector_weights = [wp.vec2(*tr_weights) for (_, tr_weights) in self.effectors.items()]
-            effector_parent_indices = [self.robot_builder.joint_parent[idx] for idx in self.effector_mapped_indices]
-
-            self.pelvis_idx = self.effector_mapped_indices[self.ik_root]
-            self.two_bone_ik_chains = wp.array2d([[self.effector_mapped_indices[i] for i in limb[_LIMB_DATA_IDX_EFFECTOR_INDICES]] for limb in self.ik_limb_data], dtype=wp.int32)
-            self.two_bone_ik_chain_parent = wp.array([effector_parent_indices[limb[_LIMB_DATA_IDX_EFFECTOR_INDICES][0]] for limb in self.ik_limb_data], dtype=wp.int32)
-            self.two_bone_ik_hint_references = wp.array([self.effector_mapped_indices[limb[_LIMB_DATA_IDX_HINT_REF]] for limb in self.ik_limb_data], dtype=wp.int32)
-            self.two_bone_ik_hint_offsets = wp.array([limb[_LIMB_DATA_IDX_HINT_OFFSET] for limb in self.ik_limb_data], dtype=wp.vec3)
-
-            self.num_envs = -1
+        elif self.robot_type == 'booster_k1':
+            self.robot_builder = newton.ModelBuilder()
+            k1_mjcf = io_utils.get_package_root().parent / "booster-k1" / "k1.xml"
+            self.robot_builder.add_mjcf(k1_mjcf)
+            newton_utils.apply_mjcf_keyframe_qpos(self.robot_builder, k1_mjcf)
         else:
             raise ValueError(f"[ERROR]: Unknown robot type {self.robot_type}")
+
+        self.num_body_count = self.robot_builder.body_count
+        self.ik_model = self._build_model(1)
+
+        body_names = [newton_utils.get_name_from_label(label) for label in self.robot_builder.body_label]
+        self.effector_mapped_indices = [body_names.index(body_name) for (body_name, _) in self.effectors.items()]
+        self.effector_weights = [wp.vec2(*tr_weights) for (_, tr_weights) in self.effectors.items()]
+        effector_parent_indices = [self.robot_builder.joint_parent[idx] for idx in self.effector_mapped_indices]
+
+        self.pelvis_idx = self.effector_mapped_indices[self.ik_root]
+        self.two_bone_ik_chains = wp.array2d([[self.effector_mapped_indices[i] for i in limb[_LIMB_DATA_IDX_EFFECTOR_INDICES]] for limb in self.ik_limb_data], dtype=wp.int32)
+        self.two_bone_ik_chain_parent = wp.array([effector_parent_indices[limb[_LIMB_DATA_IDX_EFFECTOR_INDICES][0]] for limb in self.ik_limb_data], dtype=wp.int32)
+        self.two_bone_ik_hint_references = wp.array([self.effector_mapped_indices[limb[_LIMB_DATA_IDX_HINT_REF]] for limb in self.ik_limb_data], dtype=wp.int32)
+        self.two_bone_ik_hint_offsets = wp.array([limb[_LIMB_DATA_IDX_HINT_OFFSET] for limb in self.ik_limb_data], dtype=wp.vec3)
+
+        self.num_envs = -1
 
     def setup_num_envs(self, num_envs):
         """

@@ -1,0 +1,100 @@
+{
+    "initialization_pose": "soma/soma_zero_frame0.bvh",
+    "num_initialization_frames": 10,
+    "num_stabilization_frames": 5,
+    "human_robot_scaler_config": "booster_k1/soma_to_k1_scaler_config.json",
+    "feet_stabilizer_config": "booster_k1/k1_feet_stabilizer_config.json",
+    "model_height": 1.70,
+
+    "ik_iterations": 24,
+    "joint_limit_weight": 10.0,
+    "smooth_joint_filter_weight": 5.5,
+    "collision_weight": 0.0,
+    "enable_post_processing": true,
+
+    "smooth_joint_filter_objective_body_masks": {
+        "Pelvis": 0.5,
+        "Trunk": 0.5,
+        "Left_Arm_2": 0.1,
+        "left_hand_link": 1.0,
+        "left_hand_end_ball": 0.3,
+        "Right_Arm_2": 0.1,
+        "right_hand_link": 1.0,
+        "right_hand_end_ball": 0.3
+    },
+
+    "ik_map": {
+        "Hips": {
+            "t_body": "Pelvis",
+            "r_body": "Pelvis",
+            "t_weight": 30.0,
+            "r_weight": 1.0
+        },
+        "Chest": {
+            "t_body": "Trunk",
+            "r_body": "Trunk",
+            "t_weight": 3.0,
+            "r_weight": 4.0
+        },
+        "LeftArm": {
+            "t_body": "Left_Arm_3",
+            "r_body": "Left_Arm_3",
+            "t_weight": 1.5,
+            "r_weight": 0.15
+        },
+        "LeftForeArm": {
+            "t_body": "left_hand_end_ball",
+            "r_body": "left_hand_end_ball",
+            "t_weight": 1.0,
+            "r_weight": 1.0
+        },
+        "RightArm": {
+            "t_body": "Right_Arm_3",
+            "r_body": "Right_Arm_3",
+            "t_weight": 1.5,
+            "r_weight": 0.15
+        },
+        "RightForeArm": {
+            "t_body": "right_hand_end_ball",
+            "r_body": "right_hand_end_ball",
+            "t_weight": 1.0,
+            "r_weight": 1.0
+        },
+        "LeftLeg": {
+            "t_body": "Left_Hip_Yaw",
+            "r_body": "Left_Hip_Yaw",
+            "t_weight": 1.5,
+            "r_weight": 1.0
+        },
+        "LeftShin": {
+            "t_body": "Left_Shank",
+            "r_body": "Left_Shank",
+            "t_weight": 1.0,
+            "r_weight": 1.0
+        },
+        "LeftFoot": {
+            "t_body": "left_foot_link",
+            "r_body": "left_foot_link",
+            "t_weight": 30.0,
+            "r_weight": 2.0
+        },
+        "RightLeg": {
+            "t_body": "Right_Hip_Yaw",
+            "r_body": "Right_Hip_Yaw",
+            "t_weight": 1.5,
+            "r_weight": 1.0
+        },
+        "RightShin": {
+            "t_body": "Right_Shank",
+            "r_body": "Right_Shank",
+            "t_weight": 1.0,
+            "r_weight": 1.0
+        },
+        "RightFoot": {
+            "t_body": "right_foot_link",
+            "r_body": "right_foot_link",
+            "t_weight": 30.0,
+            "r_weight": 2.0
+        }
+    }
+}
