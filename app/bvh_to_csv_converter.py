@@ -12,6 +12,7 @@ import soma_retargeter.utils.math_utils as math_utils
 import soma_retargeter.assets.bvh as bvh_utils
 import soma_retargeter.assets.csv as csv_utils
 import soma_retargeter.utils.io_utils as io_utils
+import soma_retargeter.utils.newton_utils as newton_utils
 import soma_retargeter.pipelines.utils as pipeline_utils
 
 from soma_retargeter.renderers.skeleton_renderer import SkeletonRenderer
@@ -41,6 +42,7 @@ class Viewer:
         self.fps      = 60
         self.frame_dt = 1.0 / self.fps
         self.time     = 0.0
+        self.current_target = self.config.get('retarget_target', 'unitree_g1')
 
         self.is_playing          = True
         self.playback_time       = 0.0
@@ -49,10 +51,10 @@ class Viewer:
         self.playback_total_time = 0.0
 
         self.retarget_source_options = ['soma']
-        self.retarget_target_options = ['unitree_g1']
+        self.retarget_target_options = ['unitree_g1', 'h2', 't1']
         self.retarget_solver_options = ['Newton']
         self.retarget_solver_idx     = 0
-        self.retarget_target_idx     = 0
+        self.retarget_target_idx     = self.retarget_target_options.index(self.current_target)
         self.retarget_source_idx     = 0
 
         self.show_skeleton_mesh = True
@@ -63,25 +65,35 @@ class Viewer:
         self.viewer.renderer.set_title("BVH to CSV Converter")
         self.viewer.register_ui_callback(lambda ui: self.gui(ui), position="free")
 
-        g1_builder = newton.ModelBuilder()
-        g1_builder.add_mjcf(
-            newton.utils.download_asset("unitree_g1") / "mjcf/g1_29dof_rev_1_0.xml")
+        target_type = pipeline_utils.get_target_type_from_str(self.current_target)
+        retargeter_config = pipeline_utils.get_retargeter_config(
+            pipeline_utils.get_source_type_from_str(self.config['retarget_source']),
+            target_type)
+
+        robot_builder = newton.ModelBuilder()
+        robot_builder.add_mjcf(pipeline_utils.get_robot_mjcf_path(target_type))
         
         self.num_robots = 1
         self.robot_offsets = [wp.transform(wp.vec3(0.0, i - (self.num_robots - 1) / 2.0, 0.0), wp.quat_identity()) for i in range(self.num_robots)]
         builder = newton.ModelBuilder()
         builder.add_ground_plane()
         for _ in range(self.num_robots):
-            builder.add_builder(g1_builder, wp.transform_identity())
+            builder.add_builder(robot_builder, wp.transform_identity())
         self.model = builder.finalize()
 
         self.viewer.set_model(self.model)
         self.viewer.set_world_offsets([0, 0, 0])
         self.state = self.model.state()
 
-        self.g1_num_joint_q = self.model.joint_coord_count // self.model.articulation_count
-        self.g1_joint_q_offsets = [int(i * self.g1_num_joint_q) for i in range(self.model.articulation_count)]
-        self.g1_default_joint_q_values = self.model.joint_q.numpy()
+        self.robot_num_joint_q = self.model.joint_coord_count // self.model.articulation_count
+        self.robot_joint_q_offsets = [int(i * self.robot_num_joint_q) for i in range(self.model.articulation_count)]
+        newton_utils.apply_default_joint_pose(
+            self.model,
+            robot_builder,
+            retargeter_config.get('default_joint_pose', {}),
+            retargeter_config.get('default_joint_pose_body_map', {}),
+            self.num_robots)
+        self.robot_default_joint_q_values = self.model.joint_q.numpy()
 
         self.coordinate_renderer = CoordinateRenderer()
         self.skeleton = None
@@ -98,7 +110,7 @@ class Viewer:
         self.ui_scene_options(ui)
 
     def load_csv_file(self, path):
-        self.robot_csv_animation_buffers[0] = csv_utils.load_csv(path)
+        self.robot_csv_animation_buffers[0] = csv_utils.load_csv(path, csv_config=csv_utils.get_csv_config(self.current_target))
         self.compute_playback_total_time()
 
     def load_bvh_file(self, path):
@@ -139,7 +151,7 @@ class Viewer:
         for i in range(self.num_robots):
             robot_offset = self.robot_offsets[i]
 
-            joint_q_offset = self.g1_joint_q_offsets[i]
+            joint_q_offset = self.robot_joint_q_offsets[i]
             if self.robot_csv_animation_buffers[i] is not None:
                 buffer = self.robot_csv_animation_buffers[i]
                 # Apply visual offset
@@ -147,18 +159,18 @@ class Viewer:
                 buffer.xform = robot_offset
 
                 data = buffer.sample(self.playback_time)
-                wp.copy(self.model.joint_q, wp.array(data, dtype=wp.float32), joint_q_offset, 0, self.g1_num_joint_q)
+                wp.copy(self.model.joint_q, wp.array(data, dtype=wp.float32), joint_q_offset, 0, self.robot_num_joint_q)
                 buffer.xform = prev_xform
             else:
                 root_tx = wp.mul(
                     robot_offset,
-                    wp.transform(*self.g1_default_joint_q_values[joint_q_offset:(joint_q_offset + 7)]))
+                    wp.transform(*self.robot_default_joint_q_values[joint_q_offset:(joint_q_offset + 7)]))
 
                 wp.copy(
                     self.model.joint_q,
-                    wp.array(self.g1_default_joint_q_values[joint_q_offset:(joint_q_offset + self.g1_num_joint_q)], dtype=wp.float32),
+                    wp.array(self.robot_default_joint_q_values[joint_q_offset:(joint_q_offset + self.robot_num_joint_q)], dtype=wp.float32),
                     joint_q_offset,
-                    0, self.g1_num_joint_q)
+                    0, self.robot_num_joint_q)
                 wp.copy(self.model.joint_q, wp.array(root_tx[0:7], dtype=wp.float32), joint_q_offset, 0, 7)
 
         newton.eval_fk(self.model, self.model.joint_q, self.model.joint_qd, self.state, None)
@@ -320,7 +332,7 @@ class Viewer:
                     defaultextension=".csv",
                     filetypes=[("CSV files", "*.csv")])
                 if save_path:
-                    csv_utils.save_csv(save_path, self.robot_csv_animation_buffers[0])
+                    csv_utils.save_csv(save_path, self.robot_csv_animation_buffers[0], csv_config=csv_utils.get_csv_config(self.current_target))
 
             if self.robot_csv_animation_buffers[0] is None:
                 ui.end_disabled()
@@ -409,14 +421,32 @@ class Viewer:
             export_path.mkdir(parents=True, exist_ok=True)
 
         batch_size = self.config['batch_size']
-        bvh_files = list(import_path.rglob("*.bvh"))
-        if (len(bvh_files) == 0):
+        all_bvh_files = list(import_path.rglob("*.bvh"))
+        if (len(all_bvh_files) == 0):
             print(f"[ERROR]: Import folder {str(import_path)}, does not contain any BVH files.")
             exit(-1)
 
+        pending_bvh_files = []
+        skipped_existing = 0
+        for file_path in all_bvh_files:
+            dst_path = export_path / file_path.relative_to(import_path).with_suffix(".csv")
+            if dst_path.is_file():
+                skipped_existing += 1
+                continue
+            pending_bvh_files.append(file_path)
+
+        print(f"[INFO]: Found {len(all_bvh_files)} BVH files in total.")
+        print(f"[INFO]: Skipping {skipped_existing} motions with existing CSV outputs.")
+
+        if len(pending_bvh_files) == 0:
+            print("[INFO]: No pending BVH files to retarget. Export folder is already up to date.")
+            return
+
+        print(f"[INFO]: Retargeting {len(pending_bvh_files)} pending motions.")
+
         # Sort files based on size (largest first)
-        bvh_files.sort(key=lambda p: p.stat().st_size, reverse=True)
-        batches = [bvh_files[i:i + batch_size] for i in range(0, len(bvh_files), batch_size)]
+        pending_bvh_files.sort(key=lambda p: p.stat().st_size, reverse=True)
+        batches = [pending_bvh_files[i:i + batch_size] for i in range(0, len(pending_bvh_files), batch_size)]
         
         # All skeletons should be the same, load one as our reference
         bvh_importer = bvh_utils.BVHImporter()
@@ -441,7 +471,25 @@ class Viewer:
 
         for i, batch in enumerate(batches):
             print(f"[INFO]: Processing batch {i+1} of {len(batches)}")
-            
+            fresh_batch = []
+            for file_path in batch:
+                dst_path = export_path / file_path.relative_to(import_path).with_suffix(".csv")
+                if dst_path.is_file():
+                    continue
+                fresh_batch.append(file_path)
+
+            if len(fresh_batch) == 0:
+                print(f"[INFO]: Skipping batch {i+1}/{len(batches)} because all CSV outputs already exist.")
+                continue
+
+            if len(fresh_batch) != len(batch):
+                print(
+                    f"[INFO]: Batch {i+1}/{len(batches)}: "
+                    f"skipping {len(batch) - len(fresh_batch)} existing outputs, "
+                    f"retargeting {len(fresh_batch)} files."
+                )
+
+            batch = fresh_batch
             print(f"[INFO]: Loading {len(batch)} animations...")
             animations = []
             for file_path in batch:
@@ -452,6 +500,7 @@ class Viewer:
                     f"got {animation.skeleton.num_joints}")
                 
                 animations.append(animation)
+            
             assert(len(animations) == len(batch))
 
             if (len(animations) > 0):
@@ -465,7 +514,7 @@ class Viewer:
                     csv_buffer = csv_buffers[i]
                     dst_path = export_path / pathlib.Path(batch[i]).relative_to(import_path).with_suffix(".csv")
                     dst_path.parent.mkdir(parents=True, exist_ok=True)
-                    csv_utils.save_csv(dst_path, csv_buffer)
+                    csv_utils.save_csv(dst_path, csv_buffer, csv_config=csv_utils.get_csv_config(retarget_target))
 
             nb_retargeted_motions += len(batch)
 
@@ -475,6 +524,7 @@ class Viewer:
             f"[INFO]: Retargeted {nb_retargeted_motions} animations successfully "
             f"in {elapsed_str} "
             f"[{(elapsed_time/nb_retargeted_motions):.2f}s per motion]!")
+        print(f"[INFO]: Resume summary: total={len(all_bvh_files)}, skipped_existing={skipped_existing}, newly_exported={nb_retargeted_motions}.")
 
 def main():
     import newton.examples

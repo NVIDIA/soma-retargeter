@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from enum import IntEnum, auto
+from pathlib import Path
 
+import newton
 import soma_retargeter.utils.io_utils as io_utils
 import soma_retargeter.assets.usd as usd_utils
 
@@ -15,6 +17,15 @@ class SourceType(IntEnum):
 class TargetType(IntEnum):
     """Enumeration of supported target model types."""
     UNITREE_G1 = auto()
+    H2 = auto()
+    T1 = auto()
+
+
+import pathlib
+
+_H2_MJCF_PATH = pathlib.Path("/root/Downloads/GR00T-WholeBodyControl/gear_sonic/data/assets/robot_description/mjcf/h2.xml")
+_REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
+_T1_MJCF_PATH = _REPO_ROOT / "gear_sonic/data/assets/robot_description/mjcf/T1_23dof.xml"
 
 _SOURCE_TYPE_TO_STR = {
     SourceType.SOMA : "soma"
@@ -22,7 +33,9 @@ _SOURCE_TYPE_TO_STR = {
 _STR_TO_SOURCE_TYPE = {s : t for t, s in _SOURCE_TYPE_TO_STR.items()}
 
 _TARGET_TYPE_TO_STR = {
-    TargetType.UNITREE_G1 : "unitree_g1"
+    TargetType.UNITREE_G1 : "unitree_g1",
+    TargetType.H2 : "h2",
+    TargetType.T1 : "t1"
 }
 _STR_TO_TARGET_TYPE = {s : t for t, s in _TARGET_TYPE_TO_STR.items()}
 
@@ -131,14 +144,34 @@ def get_retargeter_config(source: SourceType, target: TargetType) -> dict:
     Raises:
         ValueError: If the source or target type is not supported.
     """
-    if target != TargetType.UNITREE_G1:
-        raise ValueError(f"Unknown target type [{target}].")
-
-    if source == SourceType.SOMA:
-        filename = 'soma_to_g1_retargeter_config.json'
-    else:
+    if source != SourceType.SOMA:
         raise ValueError(f"Unknown source type [{source}] for target [{target}].")
 
-    return io_utils.load_json(
-        io_utils.get_config_file('unitree_g1', filename)
-    )
+    if target == TargetType.UNITREE_G1:
+        return io_utils.load_json(io_utils.get_config_file('unitree_g1', 'soma_to_g1_retargeter_config.json'))
+
+    if target == TargetType.H2:
+        return io_utils.load_json(io_utils.get_config_file('h2', 'soma_to_h2_retargeter_config.json'))
+
+    if target == TargetType.T1:
+        return io_utils.load_json(io_utils.get_config_file('t1', 'soma_to_t1_retargeter_config.json'))
+
+    raise ValueError(f"Unknown target type [{target}].")
+
+
+def get_robot_mjcf_path(target: TargetType) -> Path:
+    """Resolve the MJCF path for the requested target robot."""
+    if target == TargetType.UNITREE_G1:
+        return newton.utils.download_asset("unitree_g1") / "mjcf/g1_29dof_rev_1_0.xml"
+
+    if target == TargetType.H2:
+        if not _H2_MJCF_PATH.exists():
+            raise FileNotFoundError(f"[ERROR]: H2 MJCF file not found: {_H2_MJCF_PATH}")
+        return _H2_MJCF_PATH
+
+    if target == TargetType.T1:
+        if not _T1_MJCF_PATH.exists():
+            raise FileNotFoundError(f"[ERROR]: T1 MJCF file not found: {_T1_MJCF_PATH}")
+        return _T1_MJCF_PATH
+
+    raise ValueError(f"Unknown target type [{target}].")

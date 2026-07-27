@@ -1,0 +1,9 @@
+{
+    "import_folder": "/root/Downloads/GR00T-WholeBodyControl/bones-seed-extracted/soma_uniform/t1_bvh_day1_100/",
+    "export_folder": "/root/Downloads/GR00T-WholeBodyControl/bones-seed-extracted/soma_uniform/t1_csv_day1_100/",
+    "batch_size": 512,
+    "retargeter": "Newton",
+    "retarget_source": "soma",
+    "retarget_target": "t1",
+    "retarget_source_facing_direction": "Mujoco"
+}

@@ -61,6 +61,48 @@ def create_joint_coord_masks(model, active_body_masks, default_mask_fill_value):
     return mask_np
 
 
+def apply_default_joint_pose(model, robot_builder, default_joint_pose, default_joint_pose_body_map=None, num_envs=1):
+    if not default_joint_pose:
+        return
+
+    if default_joint_pose_body_map is None:
+        default_joint_pose_body_map = {}
+
+    joint_q_np = model.joint_q.numpy().copy()
+    joint_q_start_np = model.joint_q_start.numpy()
+    joint_dof_dim_np = model.joint_dof_dim.numpy()
+    base_body_count = robot_builder.body_count
+    base_body_names = [get_name_from_label(label) for label in robot_builder.body_label]
+    base_body_name_to_idx = {name: idx for idx, name in enumerate(base_body_names)}
+
+    for pose_name, pose_value in default_joint_pose.items():
+        body_name = default_joint_pose_body_map.get(pose_name, pose_name)
+        if body_name not in base_body_name_to_idx:
+            raise ValueError(
+                f"[ERROR]: Default joint pose entry '{pose_name}' maps to unknown body '{body_name}'.")
+
+        body_idx = base_body_name_to_idx[body_name]
+        for env in range(num_envs):
+            model_body_idx = env * base_body_count + body_idx
+            coord_start = int(joint_q_start_np[model_body_idx])
+            lin_dim, ang_dim = joint_dof_dim_np[model_body_idx]
+            coord_dim = int(lin_dim + ang_dim)
+            if coord_dim != 1:
+                raise ValueError(
+                    f"[ERROR]: Default joint pose entry '{pose_name}' maps to body '{body_name}' "
+                    f"with {coord_dim} coordinates; only 1-DoF joints are supported.")
+
+            if joint_q_np.ndim == 1:
+                joint_q_np[coord_start] = pose_value
+            elif joint_q_np.ndim == 2:
+                coord_start = coord_start % joint_q_np.shape[1]
+                joint_q_np[env, coord_start] = pose_value
+            else:
+                raise ValueError(f"[ERROR]: Unsupported joint_q shape: {joint_q_np.shape}")
+
+    wp.copy(model.joint_q, wp.array(joint_q_np, dtype=wp.float32))
+
+
 def create_buffer_with_initialization_frames(
         init_pose: SkeletonInstance,
         animation_buffer: AnimationBuffer,

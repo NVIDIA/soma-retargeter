@@ -14,3 +14,16 @@ wheels/
 
 # Log files, settings
 imgui.ini
+# personal
+*.log
+__pycache__/
+*.pyc
+*.bvh
+*.csv
+*.pkl
+*.pt
+*.pth
+*.onnx
+outputs/
+logs/
+wandb/

@@ -43,44 +43,94 @@ class UnitreeG129DOF_CSVConfig:
         "right_wrist_yaw_joint_dof"]
 
     def to_anim_frame(self, csv_row: np.ndarray) -> np.ndarray:
-        """
-        Convert one CSV row (including frame index) into one anim buffer frame.
-        """
-        # csv_row layout: [frame index, tx, ty, tz, rx, ry, rz, dof0, ...]
-        num_joint_dofs = csv_row.shape[0] - 1 # Remove frame index
-        anim_row = np.zeros(
-            num_joint_dofs + 1, # euler rotate xyz values converted to quat
-            dtype=np.float32)
+        # csv_row 형태: [Frame, tx, ty, tz, rx, ry, rz, joint0 ... joint30]
+        tx, ty, tz = csv_row[1:4]
+        rx, ry, rz = csv_row[4:7]
+        
+        # Euler 앵글을 Quaternion(x, y, z, w)으로 변환
+        quat = R.from_euler('xyz', [rx, ry, rz], degrees=False).as_quat()
+        joints = csv_row[7:]
+        
+        # [tx, ty, tz, qx, qy, qz, qw, joint0 ... joint30] 배열 반환
+        return np.concatenate(([tx, ty, tz], quat, joints))
 
-        # translation (cm -> m)
-        anim_row[0:3] = csv_row[1:4] * 0.01
+    def to_csv_row(self, frame_idx: int, anim_row: np.ndarray) -> list[float]:
+        # anim_row 형태: [tx, ty, tz, qx, qy, qz, qw, joint0 ... joint30]
+        tx, ty, tz = anim_row[0:3]
+        qx, qy, qz, qw = anim_row[3:7]
+        
+        # Quaternion을 Euler 앵글로 변환
+        euler = R.from_quat([qx, qy, qz, qw]).as_euler('xyz', degrees=False)
+        joints = anim_row[7:]
+        
+        row = [float(frame_idx), float(tx), float(ty), float(tz), 
+               float(euler[0]), float(euler[1]), float(euler[2])]
+        row.extend(float(j) for j in joints)
+        return row
 
-        # rotation (euler deg -> quat)
-        euler = np.deg2rad(csv_row[4:7])
-        quat = wp.quat_rpy(euler[0], euler[1], euler[2])
-        anim_row[3:7] = quat
 
-        # remaining joints (deg -> rad)
-        anim_row[7:] = np.deg2rad(csv_row[7:])
+@dataclass
+class H231DOF_CSVConfig:
+    name: str = "h2_31dof"
+    csv_header: ClassVar[List[str]] = [
+        "Frame",
+        "root_translateX", "root_translateY", "root_translateZ",
+        "root_rotateX", "root_rotateY", "root_rotateZ",
+        "left_hip_pitch_joint_dof", "left_hip_roll_joint_dof", "left_hip_yaw_joint_dof",
+        "left_knee_joint_dof", "left_ankle_roll_joint_dof", "left_ankle_pitch_joint_dof",
+        "right_hip_pitch_joint_dof", "right_hip_roll_joint_dof", "right_hip_yaw_joint_dof",
+        "right_knee_joint_dof", "right_ankle_roll_joint_dof", "right_ankle_pitch_joint_dof",
+        "waist_yaw_joint_dof", "waist_roll_joint_dof", "waist_pitch_joint_dof",
+        "head_pitch_joint_dof", "head_yaw_joint_dof",
+        "left_shoulder_pitch_joint_dof", "left_shoulder_roll_joint_dof",
+        "left_shoulder_yaw_joint_dof", "left_elbow_joint_dof",
+        "left_wrist_roll_joint_dof", "left_wrist_pitch_joint_dof", "left_wrist_yaw_joint_dof",
+        "right_shoulder_pitch_joint_dof", "right_shoulder_roll_joint_dof",
+        "right_shoulder_yaw_joint_dof", "right_elbow_joint_dof",
+        "right_wrist_roll_joint_dof", "right_wrist_pitch_joint_dof",
+        "right_wrist_yaw_joint_dof"]
 
-        return anim_row
+    def to_anim_frame(self, csv_row: np.ndarray) -> np.ndarray:
+        return UnitreeG129DOF_CSVConfig.to_anim_frame(self, csv_row)
 
     def to_csv_row(self, frame_idx: int, anim_row: np.ndarray) -> List[float]:
-        """
-        Convert one anim buffer row into a CSV row with this config's layout.
-        """
-        # translation (m -> cm)
-        t = wp.vec3(*anim_row[0:3]) * 100.0
-        # root rotation (quat -> euler deg)
-        q = wp.quat(*anim_row[3:7])
-        euler = R.from_quat([q[0], q[1], q[2], q[3]]).as_euler("xyz", degrees=True)
+        return UnitreeG129DOF_CSVConfig.to_csv_row(self, frame_idx, anim_row)
 
-        row = [frame_idx, t[0], t[1], t[2], euler[0], euler[1], euler[2]]
 
-        # joints (rad -> deg)
-        row.extend(np.rad2deg(anim_row[7:]))
+@dataclass
+class T123DOF_CSVConfig:
+    name: str = "t1_23dof"
+    csv_header: ClassVar[List[str]] = [
+        "Frame",
+        "root_translateX", "root_translateY", "root_translateZ",
+        "root_rotateX", "root_rotateY", "root_rotateZ",
+        "AAHead_yaw_dof", "Head_pitch_dof",
+        "Left_Shoulder_Pitch_dof", "Left_Shoulder_Roll_dof",
+        "Left_Elbow_Pitch_dof", "Left_Elbow_Yaw_dof",
+        "Right_Shoulder_Pitch_dof", "Right_Shoulder_Roll_dof",
+        "Right_Elbow_Pitch_dof", "Right_Elbow_Yaw_dof",
+        "Waist_dof",
+        "Left_Hip_Pitch_dof", "Left_Hip_Roll_dof", "Left_Hip_Yaw_dof",
+        "Left_Knee_Pitch_dof", "Left_Ankle_Pitch_dof", "Left_Ankle_Roll_dof",
+        "Right_Hip_Pitch_dof", "Right_Hip_Roll_dof", "Right_Hip_Yaw_dof",
+        "Right_Knee_Pitch_dof", "Right_Ankle_Pitch_dof", "Right_Ankle_Roll_dof"]
 
-        return row
+    def to_anim_frame(self, csv_row: np.ndarray) -> np.ndarray:
+        return UnitreeG129DOF_CSVConfig.to_anim_frame(self, csv_row)
+
+    def to_csv_row(self, frame_idx: int, anim_row: np.ndarray) -> List[float]:
+        return UnitreeG129DOF_CSVConfig.to_csv_row(self, frame_idx, anim_row)
+
+
+def get_csv_config(robot_type: str) -> RobotCSVConfig:
+    if robot_type == "unitree_g1":
+        return UnitreeG129DOF_CSVConfig()
+    if robot_type == "h2":
+        return H231DOF_CSVConfig()
+    if robot_type == "t1":
+        return T123DOF_CSVConfig()
+
+    raise ValueError(f"[ERROR]: Unsupported CSV config for robot type [{robot_type}]")
 
 
 def load_csv(file_path: str, fps: float = 120.0, csv_config: RobotCSVConfig = UnitreeG129DOF_CSVConfig()) -> CSVAnimationBuffer:

@@ -229,3 +229,135 @@ class IKSmoothJointFilter(ik.IKObjective):
             outputs=[jacobian],
             device=self.device,
         )
+
+
+@wp.kernel
+def _joint_pose_preference_residuals(
+    joint_q: wp.array2d(dtype=wp.float32),       # (n_batch, n_coords)
+    dof_to_coord: wp.array1d(dtype=wp.int32),    # (n_dofs)
+    target_q: wp.array1d(dtype=wp.float32),      # (n_coords)
+    coord_masks: wp.array1d(dtype=wp.float32),   # (n_coords)
+    weight: wp.array1d(dtype=wp.float32),        # (1)
+    start_idx: int,
+    residuals: wp.array2d(dtype=wp.float32),     # (n_batch, n_residuals)
+):
+    problem, dof_idx = wp.tid()
+    coord_idx = dof_to_coord[dof_idx]
+    if coord_idx < 0:
+        return
+
+    mask = coord_masks[coord_idx]
+    residuals[problem, start_idx + dof_idx] = (joint_q[problem, coord_idx] - target_q[coord_idx]) * weight[0] * mask
+
+
+@wp.kernel
+def _joint_pose_preference_jac_analytic(
+    dof_to_coord: wp.array1d(dtype=wp.int32),    # (n_dofs)
+    coord_masks: wp.array1d(dtype=wp.float32),   # (n_coords)
+    n_dofs: int,
+    start_idx: int,
+    weight: wp.array1d(dtype=wp.float32),        # (1)
+    jacobian: wp.array3d(dtype=wp.float32),      # (n_batch, n_residuals, n_dofs)
+):
+    problem, dof_idx = wp.tid()
+    coord_idx = dof_to_coord[dof_idx]
+    if coord_idx < 0:
+        return
+
+    jacobian[problem, start_idx + dof_idx, dof_idx] = weight[0] * coord_masks[coord_idx]
+
+
+class IKJointPosePreference(ik.IKObjective):
+    """A light posture objective that pulls selected 1-DoF joints toward preferred values."""
+    def __init__(self, target_q, coord_masks, n_dofs, weight=1.0):
+        super().__init__()
+        self.target_q_np = target_q.astype(np.float32)
+        self.coord_masks_np = coord_masks.astype(np.float32)
+        self.target_q = None
+        self.coord_masks = None
+        self.dof_to_coord = None
+        self.e_array = None
+        self.n_dofs = n_dofs
+        self._weight = wp.array([weight], dtype=wp.float32)
+
+    def bind_device(self, device):
+        super().bind_device(device)
+
+    def init_buffers(self, model, jacobian_mode):
+        self._require_batch_layout()
+        self.target_q = wp.array(self.target_q_np, dtype=wp.float32, device=self.device)
+        self.coord_masks = wp.array(self.coord_masks_np, dtype=wp.float32, device=self.device)
+
+        dof_to_coord_np = np.full(self.n_dofs, -1, dtype=np.int32)
+        q_start_np = model.joint_q_start.numpy()
+        qd_start_np = model.joint_qd_start.numpy()
+        joint_dof_dim_np = model.joint_dof_dim.numpy()
+        for j in range(model.joint_count):
+            dof0 = qd_start_np[j]
+            coord0 = q_start_np[j]
+            lin, ang = joint_dof_dim_np[j]
+            for k in range(lin + ang):
+                if dof0 + k < self.n_dofs:
+                    dof_to_coord_np[dof0 + k] = coord0 + k
+        self.dof_to_coord = wp.array(dof_to_coord_np, dtype=wp.int32, device=self.device)
+
+        if jacobian_mode == IKJacobianType.AUTODIFF:
+            e = np.zeros((self.n_batch, self.total_residuals), dtype=np.float32)
+            for prob_idx in range(self.n_batch):
+                for dof_idx in range(self.n_dofs):
+                    e[prob_idx, self.residual_offset + dof_idx] = 1.0
+            self.e_array = wp.array(e.flatten(), dtype=wp.float32, device=self.device)
+
+    def supports_analytic(self):
+        return True
+
+    def residual_dim(self):
+        return self.n_dofs
+
+    def compute_residuals(self, body_q, joint_q, model, residuals, start_idx, problem_idx):
+        wp.launch(
+            _joint_pose_preference_residuals,
+            dim=[joint_q.shape[0], self.n_dofs],
+            inputs=[
+                joint_q,
+                self.dof_to_coord,
+                self.target_q,
+                self.coord_masks,
+                self._weight,
+                start_idx,
+            ],
+            outputs=[residuals],
+            device=self.device,
+        )
+
+    def compute_jacobian_autodiff(self, tape, model, jacobian, start_idx, dq_dof):
+        self._require_batch_layout()
+        tape.backward(grads={tape.outputs[0]: self.e_array})
+        wp.launch(
+            _joint_pose_preference_jac_analytic,
+            dim=[self.n_batch, self.n_dofs],
+            inputs=[
+                self.dof_to_coord,
+                self.coord_masks,
+                self.n_dofs,
+                start_idx,
+                self._weight,
+            ],
+            outputs=[jacobian],
+            device=self.device,
+        )
+
+    def compute_jacobian_analytic(self, body_q, joint_q, model, jacobian, joint_S_s, start_idx):
+        wp.launch(
+            _joint_pose_preference_jac_analytic,
+            dim=[joint_q.shape[0], self.n_dofs],
+            inputs=[
+                self.dof_to_coord,
+                self.coord_masks,
+                self.n_dofs,
+                start_idx,
+                self._weight,
+            ],
+            outputs=[jacobian],
+            device=self.device,
+        )
