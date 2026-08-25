@@ -1,0 +1,120 @@
+{
+  "robot_type": "gr1t2",
+  "model_path": "/home/tuan/projects/cibo/contents/assets/robots/humanoid/gr1t2/mjcf/gr1t2_no_fingers.xml",
+  "num_actuated_dofs": 32,
+  "joint_names": [
+    "left_hip_roll_joint",
+    "left_hip_yaw_joint",
+    "left_hip_pitch_joint",
+    "left_knee_pitch_joint",
+    "left_ankle_pitch_joint",
+    "left_ankle_roll_joint",
+
+    "right_hip_roll_joint",
+    "right_hip_yaw_joint",
+    "right_hip_pitch_joint",
+    "right_knee_pitch_joint",
+    "right_ankle_pitch_joint",
+    "right_ankle_roll_joint",
+
+    "waist_yaw_joint",
+    "waist_pitch_joint",
+    "waist_roll_joint",
+
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_pitch_joint",
+    "left_wrist_yaw_joint",
+    "left_wrist_roll_joint",
+    "left_wrist_pitch_joint",
+
+    "right_shoulder_pitch_joint",
+    "right_shoulder_roll_joint",
+    "right_shoulder_yaw_joint",
+    "right_elbow_pitch_joint",
+    "right_wrist_yaw_joint",
+    "right_wrist_roll_joint",
+    "right_wrist_pitch_joint",
+
+    "head_roll_joint",
+    "head_pitch_joint",
+    "head_yaw_joint"
+  ],
+  "required_bodies": [
+    "base_link",
+    "left_thigh_roll_link",
+    "left_shank_pitch_link",
+    "left_foot_roll_link",
+    "right_thigh_roll_link",
+    "right_shank_pitch_link",
+    "right_foot_roll_link",
+    "left_upper_arm_roll_link",
+    "left_lower_arm_pitch_link",
+    "left_hand_pitch_link",
+    "right_upper_arm_roll_link",
+    "right_lower_arm_pitch_link",
+    "right_hand_pitch_link"
+  ],
+  "ik_iterations": 20,
+  "joint_limit_weight": 10.0,
+  "effectors": {
+    "base_link": [
+      30.0,
+      8.0
+    ],
+    "left_thigh_roll_link": [
+      1.5,
+      0.15
+    ],
+    "left_shank_pitch_link": [
+      1.0,
+      1.0
+    ],
+    "left_foot_roll_link": [
+      10.0,
+      2.0
+    ],
+    "right_thigh_roll_link": [
+      1.5,
+      0.15
+    ],
+    "right_shank_pitch_link": [
+      1.0,
+      1.0
+    ],
+    "right_foot_roll_link": [
+      10.0,
+      2.0
+    ]
+  },
+  "ik_root": 0,
+  "ik_limbs": {
+    "left_leg": {
+      "effectors": [
+        1,
+        2,
+        3
+      ],
+      "hint_reference": 3,
+      "hint_offset": [
+        0.25,
+        0.0,
+        0.25
+      ]
+    },
+    "right_leg": {
+      "effectors": [
+        4,
+        5,
+        6
+      ],
+      "hint_reference": 6,
+      "hint_offset": [
+        0.25,
+        0.0,
+        0.25
+      ]
+    }
+  }
+}

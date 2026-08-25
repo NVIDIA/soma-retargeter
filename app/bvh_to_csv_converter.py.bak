@@ -2,9 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-import csv
-import gc
-import json
 import newton
 
 import pathlib
@@ -29,147 +26,6 @@ _UI_NEWTON_PANEL_WIDTH  = 320
 _UI_NEWTON_PANEL_MARGIN = 10
 _UI_NEWTON_PANEL_ALPHA  = 0.9
 _DEFAULT_COLOR = (235.0 / 255.0, 245.0 / 255.0, 112.0 / 255.0)
-
-def _atomic_write_json(path: pathlib.Path, payload: dict):
-    """Persist small state files atomically so Ctrl+C cannot corrupt them."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = path.with_name(path.name + ".tmp")
-    with tmp_path.open("w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp_path, path)
-
-
-def _csv_is_valid(path: pathlib.Path, csv_config) -> bool:
-    """Lightweight validation for resume: final file, expected header, >=1 frame."""
-    if not path.is_file():
-        return False
-    try:
-        if path.stat().st_size <= 0:
-            return False
-        with path.open("r", newline="", encoding="utf-8") as f:
-            reader = csv.reader(f)
-            header = next(reader, None)
-            first_row = next(reader, None)
-        return header == list(csv_config.csv_header) and first_row is not None
-    except (OSError, UnicodeDecodeError, csv.Error):
-        return False
-
-
-def _atomic_save_csv(path: pathlib.Path, csv_buffer, csv_config):
-    """Write to .tmp first, then atomically publish the completed CSV."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = path.with_name(path.name + ".tmp")
-    try:
-        tmp_path.unlink(missing_ok=True)
-        csv_utils.save_csv(tmp_path, csv_buffer, csv_config=csv_config)
-        if not _csv_is_valid(tmp_path, csv_config):
-            raise RuntimeError(f"CSV validation failed after writing temporary file: {tmp_path}")
-        os.replace(tmp_path, path)
-    finally:
-        tmp_path.unlink(missing_ok=True)
-
-
-def _release_batch_memory(retarget_pipeline):
-    """Release per-batch references and encourage unused host heap to return to Linux."""
-    # Finish outstanding work on the active CUDA device before dropping Python
-    # references that may own or view buffers used by that work.
-    device = wp.get_device()
-    if getattr(device, "is_cuda", False):
-        wp.synchronize_device(device)
-    retarget_pipeline.clear()
-    gc.collect()
-    # CPython/glibc may otherwise retain freed NumPy/Python arenas for reuse.
-    # malloc_trim is Linux/glibc-specific, so failure is intentionally harmless.
-    try:
-        import ctypes
-        ctypes.CDLL("libc.so.6").malloc_trim(0)
-    except Exception:
-        pass
-
-
-def _build_manifest(import_path: pathlib.Path, manifest_path: pathlib.Path, include_files=None) -> int:
-    """Build the original size-descending order once and persist it for future runs."""
-    if include_files is None:
-        bvh_files = list(import_path.rglob("*.bvh"))
-    else:
-        bvh_files = [import_path / pathlib.Path(relative_path) for relative_path in include_files]
-        missing_files = [str(path) for path in bvh_files if not path.is_file()]
-        if missing_files:
-            raise FileNotFoundError(f"Configured BVH files do not exist: {missing_files}")
-
-    if not bvh_files:
-        raise RuntimeError(f"Import folder {import_path} does not contain any BVH files.")
-
-    # Keep the upstream behavior: long/larger clips are grouped together so a short
-    # clip is less likely to sit in a batch whose Newton loop runs to a much larger
-    # max_frames value. The expensive rglob/stat/sort is done only when creating the manifest.
-    bvh_files.sort(key=lambda p: p.stat().st_size, reverse=True)
-
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = manifest_path.with_name(manifest_path.name + ".tmp")
-    with tmp_path.open("w", encoding="utf-8") as f:
-        for path in bvh_files:
-            f.write(path.relative_to(import_path).as_posix() + "\n")
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp_path, manifest_path)
-    return len(bvh_files)
-
-
-def _read_manifest_count(manifest_path: pathlib.Path) -> int:
-    with manifest_path.open("r", encoding="utf-8") as f:
-        return sum(1 for line in f if line.strip())
-
-
-def _first_manifest_entry(manifest_path: pathlib.Path) -> pathlib.Path:
-    with manifest_path.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                return pathlib.Path(line)
-    raise RuntimeError(f"Manifest is empty: {manifest_path}")
-
-
-def _iter_manifest_from(manifest_path: pathlib.Path, start_index: int):
-    """Stream manifest entries; avoids keeping ~142k Path objects in RAM."""
-    with manifest_path.open("r", encoding="utf-8") as f:
-        logical_index = 0
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            if logical_index >= start_index:
-                yield logical_index, pathlib.Path(line)
-            logical_index += 1
-
-
-def _recover_legacy_progress(
-        manifest_path: pathlib.Path, export_path: pathlib.Path, csv_config, num_files: int) -> int:
-    """Recover the completed prefix produced before checkpoint/atomic-save support existed.
-
-    Old runs wrote directly to the final CSV path. If Ctrl+C landed during a save,
-    that last visible CSV can be truncated while still containing a valid header and
-    first row. When recovery stops at the first missing/obviously-invalid output,
-    roll back one entry so the boundary file is regenerated safely.
-    """
-    next_index = 0
-    with manifest_path.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            relative_path = pathlib.Path(line)
-            dst_path = export_path / relative_path.with_suffix(".csv")
-            if not _csv_is_valid(dst_path, csv_config):
-                break
-            next_index += 1
-
-    if next_index < num_files and next_index > 0:
-        next_index -= 1
-    return next_index
-
 
 class Viewer:
     def __init__(self, viewer, config):
@@ -587,251 +443,95 @@ class Viewer:
         import_folder = os.path.expanduser(os.path.expandvars(self.config['import_folder']))
         export_folder = os.path.expanduser(os.path.expandvars(self.config['export_folder']))
         if not os.path.isdir(import_folder):
-            raise FileNotFoundError(f"Import folder does not exist: {import_folder}")
+            print(f"[ERROR]: Import folder does not exist {import_folder}.")
+            exit(-1)
 
         import_path = pathlib.Path(import_folder)
         if len(export_folder) == 0:
-            raise ValueError("No export folder specified.")
+            print("[ERROR]: No export folder specified.")
+            exit(-1)
 
         export_path = pathlib.Path(export_folder)
-        export_path.mkdir(parents=True, exist_ok=True)
+        if not export_path.is_dir():
+            print(f"[WARNING]: Export folder does not exist! Creating new folder at {str(export_path)}!")
+            export_path.mkdir(parents=True, exist_ok=True)
 
-        batch_size = int(self.config['batch_size'])
-        if batch_size <= 0:
-            raise ValueError(f"batch_size must be > 0, got {batch_size}")
-
+        batch_size = self.config['batch_size']
         include_files = self.config.get('include_files')
-        rebuild_manifest = bool(self.config.get('rebuild_manifest', False))
-
-        # Keep conversion state beside the output tree unless explicitly overridden.
-        state_folder = self.config.get('state_folder', str(export_path.parent / 'state'))
-        state_path = pathlib.Path(os.path.expanduser(os.path.expandvars(state_folder)))
-        state_path.mkdir(parents=True, exist_ok=True)
-        manifest_path = state_path / 'manifest.txt'
-        manifest_meta_path = state_path / 'manifest_meta.json'
-        checkpoint_path = state_path / 'checkpoint.json'
-
-        # Build the upstream size-sorted order only once. Reusing the manifest avoids
-        # recursive discovery + stat + sort on every restart while preserving the
-        # batching heuristic already used by soma-retargeter.
-        if rebuild_manifest or not manifest_path.is_file():
-            print("[INFO]: Building BVH manifest (one-time rglob/stat/size sort)...")
-            num_files = _build_manifest(import_path, manifest_path, include_files)
-            _atomic_write_json(manifest_meta_path, {
-                'version': 1,
-                'import_folder': str(import_path.resolve()),
-                'num_files': num_files,
-                'ordering': 'source_file_size_desc',
-            })
-            # A rebuilt order invalidates a positional checkpoint.
-            checkpoint_path.unlink(missing_ok=True)
-            print(f"[INFO]: Manifest created with {num_files} BVH files: {manifest_path}")
+        if include_files is None:
+            bvh_files = list(import_path.rglob("*.bvh"))
         else:
-            if not manifest_meta_path.is_file():
-                raise RuntimeError(
-                    f"Manifest metadata is missing: {manifest_meta_path}. "
-                    "Set rebuild_manifest=true once to recreate conversion state.")
-            with manifest_meta_path.open('r', encoding='utf-8') as f:
-                manifest_meta = json.load(f)
-            recorded_import = pathlib.Path(manifest_meta.get('import_folder', '')).expanduser()
-            if recorded_import != import_path.resolve():
-                raise RuntimeError(
-                    f"Manifest belongs to a different import folder: {recorded_import}. "
-                    f"Current import folder: {import_path.resolve()}. "
-                    "Set rebuild_manifest=true once to recreate conversion state.")
+            bvh_files = [import_path / relative_path for relative_path in include_files]
+            missing_files = [str(path) for path in bvh_files if not path.is_file()]
+            if missing_files:
+                raise FileNotFoundError(
+                    f"Configured BVH files do not exist: {missing_files}")
+        if (len(bvh_files) == 0):
+            print(f"[ERROR]: Import folder {str(import_path)}, does not contain any BVH files.")
+            exit(-1)
 
-            num_files = _read_manifest_count(manifest_path)
-            if num_files == 0:
-                raise RuntimeError(f"Manifest is empty: {manifest_path}")
-            recorded_count = int(manifest_meta.get('num_files', num_files))
-            if recorded_count != num_files:
-                raise RuntimeError(
-                    f"Manifest metadata/count mismatch ({recorded_count} != {num_files}). "
-                    "Set rebuild_manifest=true once to recreate conversion state.")
-            print(f"[INFO]: Reusing existing manifest with {num_files} BVH files: {manifest_path}")
-
-        # All skeletons should be the same, load the first manifest entry as reference.
-        first_relative_path = _first_manifest_entry(manifest_path)
-        first_bvh_path = import_path / first_relative_path
-        if not first_bvh_path.is_file():
-            raise FileNotFoundError(
-                f"Manifest entry no longer exists: {first_bvh_path}. "
-                "Set rebuild_manifest=true once after changing the input dataset.")
-
+        # Sort files based on size (largest first)
+        bvh_files.sort(key=lambda p: p.stat().st_size, reverse=True)
+        batches = [bvh_files[i:i + batch_size] for i in range(0, len(bvh_files), batch_size)]
+        
+        # All skeletons should be the same, load one as our reference
         bvh_importer = bvh_utils.BVHImporter()
-        bvh_skeleton, _ = bvh_importer.create_skeleton(first_bvh_path)
+        bvh_skeleton, _ = bvh_importer.create_skeleton(batches[0][0])
+
         bvh_tx_converter = self.converter.transform(wp.transform_identity())
         expected_num_joints = bvh_skeleton.num_joints
 
         retarget_source = self.config['retarget_source']
         retarget_solver = self.config['retargeter']
-        retarget_target = self.config['retarget_target']
+        retarget_target = self.config["retarget_target"]
         csv_config = csv_utils.get_csv_config(retarget_target)
-
-        if retarget_solver != 'Newton':
-            raise ValueError(f"Invalid retarget solver selected [{retarget_solver}]. Use 'Newton'.")
-
-        import soma_retargeter.pipelines.newton_pipeline as newton_pipeline
-        retarget_pipeline = newton_pipeline.NewtonPipeline(
-            bvh_skeleton, retarget_source, retarget_target)
-
-        # New runs use a positional checkpoint. For outputs created by the old code,
-        # recover the already-completed prefix by validating the existing CSVs once.
-        start_index = 0
-        if checkpoint_path.is_file():
-            with checkpoint_path.open('r', encoding='utf-8') as f:
-                checkpoint = json.load(f)
-            checkpoint_total = int(checkpoint.get('num_files', num_files))
-            if checkpoint_total != num_files:
-                raise RuntimeError(
-                    f"Checkpoint/manifest mismatch ({checkpoint_total} != {num_files}). "
-                    "Set rebuild_manifest=true once if the input dataset changed.")
-            start_index = int(checkpoint.get('next_index', 0))
-            if start_index < 0 or start_index > num_files:
-                raise RuntimeError(f"Invalid checkpoint next_index={start_index} for {num_files} files")
-            print(f"[INFO]: Resuming from checkpoint index {start_index}/{num_files}")
-        else:
-            print("[INFO]: No checkpoint found; recovering progress from existing CSV outputs...")
-            start_index = _recover_legacy_progress(manifest_path, export_path, csv_config, num_files)
-            _atomic_write_json(checkpoint_path, {
-                'version': 1,
-                'next_index': start_index,
-                'num_files': num_files,
-            })
-            print(f"[INFO]: Recovered resume index {start_index}/{num_files}")
-
-        if start_index >= num_files:
-            print("[INFO]: All manifest entries are already converted.")
-            return
+        retarget_pipeline = None
+        if (retarget_solver == 'Newton'):
+            import soma_retargeter.pipelines.newton_pipeline as newton_pipeline
+            retarget_pipeline = newton_pipeline.NewtonPipeline(bvh_skeleton, retarget_source, retarget_target)
+        if retarget_pipeline is None:
+            print(f"[ERROR]: Invalid retarget solver selected [{retarget_solver}]. Use 'Newton'.")
+            exit(-1)
 
         nb_retargeted_motions = 0
-        nb_skipped_motions = 0
         start_time = time.time()
 
-        # Stream manifest entries from the resume cursor instead of materializing a
-        # second in-memory list of every file and every batch.
-        manifest_iter = _iter_manifest_from(manifest_path, start_index)
-        next_index = start_index
-        batch_number = start_index // batch_size
-        total_batches = (num_files + batch_size - 1) // batch_size
+        for i, batch in enumerate(batches):
+            print(f"[INFO]: Processing batch {i+1} of {len(batches)}")
+            
+            print(f"[INFO]: Loading {len(batch)} animations...")
+            animations = []
+            for file_path in batch:
+                _, animation = bvh_utils.load_bvh(file_path, bvh_skeleton)
+                # All animations should be on the same skeleton
+                assert expected_num_joints == animation.skeleton.num_joints, (
+                    f"[ERROR]: Unexpected number of joints in input motion. Expected {expected_num_joints}, "
+                    f"got {animation.skeleton.num_joints}")
+                
+                animations.append(animation)
+            assert(len(animations) == len(batch))
 
-        try:
-            while next_index < num_files:
-                batch_entries = []
-                for _ in range(batch_size):
-                    try:
-                        batch_entries.append(next(manifest_iter))
-                    except StopIteration:
-                        break
+            if (len(animations) > 0):
+                print("[INFO]: Retargeting...")
+                retarget_pipeline.clear()
+                retarget_pipeline.add_input_motions(animations, [bvh_tx_converter] * len(animations), True)
+                csv_buffers = retarget_pipeline.execute()
 
-                if not batch_entries:
-                    break
+                assert(len(csv_buffers) == len(animations))
+                for i in trange(len(csv_buffers), desc="[INFO]: Exporting CSV Files"):
+                    csv_buffer = csv_buffers[i]
+                    dst_path = export_path / pathlib.Path(batch[i]).relative_to(import_path).with_suffix(".csv")
+                    dst_path.parent.mkdir(parents=True, exist_ok=True)
+                    csv_utils.save_csv(dst_path, csv_buffer, csv_config=csv_config)
 
-                batch_number += 1
-                batch_end_index = batch_entries[-1][0] + 1
-                print(
-                    f"[INFO]: Processing batch {batch_number} of {total_batches} "
-                    f"(manifest {batch_entries[0][0]}:{batch_end_index})")
-
-                # A prior interruption may have atomically completed only part of this
-                # checkpoint interval. Skip valid final CSVs and retarget only missing/
-                # invalid files. This also safely handles the user's pre-existing outputs.
-                pending_entries = []
-                for logical_index, relative_path in batch_entries:
-                    src_path = import_path / relative_path
-                    dst_path = export_path / relative_path.with_suffix('.csv')
-                    if _csv_is_valid(dst_path, csv_config):
-                        nb_skipped_motions += 1
-                        continue
-                    if not src_path.is_file():
-                        raise FileNotFoundError(
-                            f"Source listed in manifest no longer exists: {src_path}. "
-                            "Set rebuild_manifest=true once after changing the input dataset.")
-                    pending_entries.append((logical_index, relative_path, src_path, dst_path))
-
-                animations = None
-                csv_buffers = None
-                try:
-                    # Clear previous input_targets BEFORE loading the next host batch.
-                    # NewtonPipeline.clear() is the pipeline's existing lifecycle API.
-                    retarget_pipeline.clear()
-
-                    if pending_entries:
-                        print(f"[INFO]: Loading {len(pending_entries)} animations...")
-                        animations = []
-                        for _, _, src_path, _ in pending_entries:
-                            _, animation = bvh_utils.load_bvh(src_path, bvh_skeleton)
-                            if expected_num_joints != animation.skeleton.num_joints:
-                                raise RuntimeError(
-                                    f"Unexpected number of joints in {src_path}. "
-                                    f"Expected {expected_num_joints}, got {animation.skeleton.num_joints}")
-                            animations.append(animation)
-
-                        print("[INFO]: Retargeting...")
-                        retarget_pipeline.add_input_motions(
-                            animations,
-                            [bvh_tx_converter] * len(animations),
-                            True)
-                        csv_buffers = retarget_pipeline.execute()
-                        if csv_buffers is None or len(csv_buffers) != len(animations):
-                            raise RuntimeError(
-                                f"Retarget output count mismatch: "
-                                f"expected {len(animations)}, got "
-                                f"{0 if csv_buffers is None else len(csv_buffers)}")
-
-                        for output_idx in trange(
-                                len(csv_buffers), desc="[INFO]: Exporting CSV Files"):
-                            _, _, _, dst_path = pending_entries[output_idx]
-                            _atomic_save_csv(
-                                dst_path,
-                                csv_buffers[output_idx],
-                                csv_config)
-                            nb_retargeted_motions += 1
-                    else:
-                        print("[INFO]: Batch already complete; skipping retargeting.")
-
-                    # Advance only after every final CSV in this manifest interval is valid.
-                    for _, relative_path in batch_entries:
-                        dst_path = export_path / relative_path.with_suffix('.csv')
-                        if not _csv_is_valid(dst_path, csv_config):
-                            raise RuntimeError(
-                                f"Batch completion validation failed for: {dst_path}")
-
-                    next_index = batch_end_index
-                    _atomic_write_json(checkpoint_path, {
-                        'version': 1,
-                        'next_index': next_index,
-                        'num_files': num_files,
-                    })
-
-                finally:
-                    # Drop large Python/NumPy references before loading the next batch.
-                    if csv_buffers is not None:
-                        del csv_buffers
-                        csv_buffers = None
-                    if animations is not None:
-                        del animations
-                        animations = None
-                    _release_batch_memory(retarget_pipeline)
-
-        except KeyboardInterrupt:
-            print("\n[INFO]: Interrupted by user.")
-            print(f"[INFO]: Completed CSVs remain valid; resume state: {checkpoint_path}")
-            print("[INFO]: Run the same command again to continue.")
-            raise
-        finally:
-            _release_batch_memory(retarget_pipeline)
+            nb_retargeted_motions += len(batch)
 
         elapsed_time = time.time() - start_time
-        elapsed_str = (
-            f"{int(elapsed_time // 3600):02d}:"
-            f"{int((elapsed_time % 3600) // 60):02d}:"
-            f"{int(elapsed_time % 60):02d}")
-        avg = elapsed_time / nb_retargeted_motions if nb_retargeted_motions else 0.0
+        elapsed_str = f"{int(elapsed_time // 3600):02d}:{int((elapsed_time % 3600) // 60):02d}:{int(elapsed_time % 60):02d}"
         print(
-            f"[INFO]: Retargeted {nb_retargeted_motions} animations, "
-            f"skipped {nb_skipped_motions} existing animations, "
-            f"in {elapsed_str} [{avg:.2f}s per newly retargeted motion].")
+            f"[INFO]: Retargeted {nb_retargeted_motions} animations successfully "
+            f"in {elapsed_str} "
+            f"[{(elapsed_time/nb_retargeted_motions):.2f}s per motion]!")
 
 def main():
     import newton.examples

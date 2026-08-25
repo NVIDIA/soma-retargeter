@@ -83,6 +83,50 @@ class UnitreeG129DOF_CSVConfig:
         return row
 
 
+GR1T2_MUJOCO_JOINT_NAMES: tuple[str, ...] = (
+    "left_hip_roll_joint", "left_hip_yaw_joint", "left_hip_pitch_joint",
+    "left_knee_pitch_joint", "left_ankle_pitch_joint", "left_ankle_roll_joint",
+    "right_hip_roll_joint", "right_hip_yaw_joint", "right_hip_pitch_joint",
+    "right_knee_pitch_joint", "right_ankle_pitch_joint", "right_ankle_roll_joint",
+    "waist_yaw_joint", "waist_pitch_joint", "waist_roll_joint",
+    "left_shoulder_pitch_joint", "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint", "left_elbow_pitch_joint",
+    "left_wrist_yaw_joint", "left_wrist_roll_joint", "left_wrist_pitch_joint",
+    "right_shoulder_pitch_joint", "right_shoulder_roll_joint",
+    "right_shoulder_yaw_joint", "right_elbow_pitch_joint",
+    "right_wrist_yaw_joint", "right_wrist_roll_joint", "right_wrist_pitch_joint",
+    "head_roll_joint", "head_pitch_joint", "head_yaw_joint",
+)
+
+
+@dataclass
+class GR1T232DOF_CSVConfig(UnitreeG129DOF_CSVConfig):
+    """GR1T2 CSV layout matching Newton's ``joint_q[7:]`` coordinate order."""
+
+    name: str = "gr1t2_32dof"
+    csv_header: ClassVar[List[str]] = [
+        "Frame",
+        "root_translateX", "root_translateY", "root_translateZ",
+        "root_rotateX", "root_rotateY", "root_rotateZ",
+        *(f"{name}_dof" for name in GR1T2_MUJOCO_JOINT_NAMES),
+    ]
+
+
+def get_csv_config(target: str) -> RobotCSVConfig:
+    """Select a deterministic CSV schema from the retarget target name."""
+
+    configs = {
+        "unitree_g1": UnitreeG129DOF_CSVConfig,
+        "gr1t2": GR1T232DOF_CSVConfig,
+    }
+    try:
+        return configs[target]()
+    except KeyError:
+        raise ValueError(
+            f"Unknown CSV target {target!r}; allowed values: {', '.join(configs)}"
+        ) from None
+
+
 def load_csv(file_path: str, fps: float = 120.0, csv_config: RobotCSVConfig = UnitreeG129DOF_CSVConfig()) -> CSVAnimationBuffer:
     """
     Load a robot motion CSV file into a ``CSVAnimationBuffer``.
@@ -98,7 +142,20 @@ def load_csv(file_path: str, fps: float = 120.0, csv_config: RobotCSVConfig = Un
     """
     with open(file_path, 'r', encoding='utf-8') as f:
         print(f"[INFO]: Loading CSV [{file_path}] for robot [{csv_config.name}]")
+        header = next(csv.reader(f))
+        if header != csv_config.csv_header:
+            raise ValueError(
+                f"CSV header mismatch for {csv_config.name}:\n"
+                f"expected={csv_config.csv_header}\nactual={header}"
+            )
+        f.seek(0)
         csv_data = np.loadtxt(f, delimiter=",", skiprows=1)
+        csv_data = np.atleast_2d(csv_data)
+        if csv_data.shape[1] != len(csv_config.csv_header):
+            raise ValueError(
+                f"CSV row width mismatch: expected {len(csv_config.csv_header)}, "
+                f"got {csv_data.shape[1]}"
+            )
         num_frames = csv_data.shape[0]
 
         # Each anim row is derived by config, so infer size from first row
@@ -128,6 +185,13 @@ def save_csv(file_path: str, buffer: CSVAnimationBuffer, csv_config: RobotCSVCon
     """
     if buffer is None or buffer.num_frames == 0:
         raise RuntimeError("[ERROR]: Empty or invalid buffer.")
+
+    first_row = csv_config.to_csv_row(0, buffer.get_data(0))
+    if len(first_row) != len(csv_config.csv_header):
+        raise ValueError(
+            f"Animation width does not match {csv_config.name}: "
+            f"expected {len(csv_config.csv_header)} CSV columns, got {len(first_row)}"
+        )
 
     with open(file_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)

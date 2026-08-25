@@ -31,7 +31,7 @@ class NewtonPipeline:
     Newton-based motion retargeting pipeline.
 
     This pipeline retargets human motion captured on a common skeleton
-    to a target robot (currently Unitree G1) using inverse kinematics (IK),
+    to a configured target robot using inverse kinematics (IK),
     custom objectives, and optional post-processing filters such as
     joint limit clamping and feet stabilization.
     """
@@ -42,7 +42,7 @@ class NewtonPipeline:
         Args:
             skeleton: Common skeleton definition used by the input clips to be retargeted.
             source_type: Source skeleton type name. Currently only "soma" is supported.
-            robot_type: Target robot type name. Currently only "unitree_g1" is supported.
+            robot_type: Target robot type name.
             retarget_config: Optional configuration dictionary. If None, a
                 configuration is loaded from disk based on the source/target
                 types.
@@ -69,16 +69,21 @@ class NewtonPipeline:
         self.smooth_joint_filter_coord_masks = None
         self.joint_limit_clamper = None
 
-        if (self.target_type == pipeline_utils.TargetType.UNITREE_G1):
-            self.robot_builder = newton.ModelBuilder()
-            self.robot_builder.add_mjcf(
-                newton.utils.download_asset("unitree_g1") / "mjcf/g1_29dof_rev_1_0.xml")
+        if self.target_type in (
+                pipeline_utils.TargetType.UNITREE_G1, 
+                pipeline_utils.TargetType.GR1T2, 
+            ):
+            self.robot_builder = pipeline_utils.build_and_validate_robot(
+                self.target_type, retargeter_config)
 
             self.human_robot_scaler = HumanToRobotScaler(
                 skeleton, retargeter_config['model_height'], io_utils.get_config_file(retargeter_config['human_robot_scaler_config']))
 
             self.num_body_count = self.robot_builder.body_count
-            self.num_dofs = self.robot_builder.joint_dof_count
+            self.num_dofs = len([
+                joint_type for joint_type in self.robot_builder.joint_type
+                if joint_type in (newton.JointType.REVOLUTE, newton.JointType.PRISMATIC)
+            ])
             self.ik_model = self._build_model(1)
 
             (
@@ -102,7 +107,8 @@ class NewtonPipeline:
                 self.mapped_joints.index("LeftFoot"),
                 self.mapped_joints.index("RightFoot")]
 
-            self.feet_stabilizer = FeetStabilizer(io_utils.get_config_file(retargeter_config['feet_stabilizer_config']))
+            self.feet_stabilizer = FeetStabilizer(
+                io_utils.get_config_file(retargeter_config['feet_stabilizer_config']))
             self.joint_limit_clamper = JointLimitClamper(self.ik_model)
 
             self.initialization_pose = None
@@ -271,7 +277,9 @@ class NewtonPipeline:
                 if frame > (len(self.input_targets[env])-1):
                     continue
 
-                joint_q_data[env][frame] = data[env]
+                # Warp's CPU ``numpy()`` result aliases device storage. Persist a
+                # frame copy or every CSV row becomes the final solver state.
+                joint_q_data[env][frame] = data[env].copy()
 
             #end_time = time.time()
             #print(f"Time taken for frame {frame}: {end_time - start_time} seconds")

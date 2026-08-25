@@ -1,0 +1,11 @@
+{
+    "import_folder": "~/projects/cibo/data/bones_seed_sample/extracted/soma_uniform/bvh",
+    "export_folder": "~/projects/cibo/data/bones_seed_sample/convert_to_csv/csv",
+    "state_folder": "~/projects/cibo/data/bones_seed_sample/convert_to_csv/state",
+    "batch_size": 500,
+    "rebuild_manifest": false,
+    "retargeter": "Newton",
+    "retarget_source": "soma",
+    "retarget_target": "gr1t2",
+    "retarget_source_facing_direction": "Mujoco"
+}
