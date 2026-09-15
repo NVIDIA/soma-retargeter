@@ -4,6 +4,7 @@
 from typing import List
 
 import warp as wp
+import numpy as np
 import soma_retargeter.utils.math_utils as math_utils
 
 
@@ -59,6 +60,75 @@ def compute_global_pose_kernel(
 ):
     """Kernel wrapper for wp_compute_global_pose."""
     wp_compute_global_pose(in_num_joints, in_root_tx, in_parent_indices, in_local_pose, out_result)
+
+@wp.kernel
+def _compute_global_poses_batch_kernel(
+    num_joints:     wp.int32,
+    root_tx:        wp.transform,
+    parent_indices: wp.array(dtype=wp.int32),
+    local_poses:    wp.array2d(dtype=wp.transform),
+    global_poses:   wp.array2d(dtype=wp.transform),
+):
+    f = wp.tid()
+    global_poses[f, 0] = wp.mul(root_tx, local_poses[f, 0])
+    for j in range(1, num_joints):
+        parent = parent_indices[j]
+        global_poses[f, j] = wp.transform_multiply(
+            global_poses[f, parent], local_poses[f, j]
+        )
+
+
+def compute_global_poses_batch_wp(skeleton, local_transforms_2d, root_tx=wp.transform_identity()):
+    """Compute global transforms for ALL frames in one kernel launch.
+
+    Parameters
+    ----------
+    skeleton : Skeleton
+        Must expose ``num_joints`` and ``parent_indices``.
+    local_transforms_2d : np.ndarray
+        Per-frame local transforms. Accepted shapes:
+        * ``(num_frames, num_joints, 7)`` float32
+        * ``(num_frames, num_joints)`` with dtype ``wp.transform``
+    root_tx : wp.transform
+
+    Returns
+    -------
+    wp.array2d(dtype=wp.transform), shape ``(num_frames, num_joints)``
+    """
+    arr = np.ascontiguousarray(local_transforms_2d)
+
+    if arr.ndim == 3:
+        num_frames, num_joints = arr.shape[0], arr.shape[1]
+    elif arr.ndim == 2:
+        num_frames, num_joints = arr.shape
+    else:
+        raise ValueError(
+            f"local_transforms_2d must be 2-D or 3-D, got shape {local_transforms_2d.shape}"
+        )
+
+    wp_local = wp.array(arr, dtype=wp.transform, ndim=2)
+    wp_parent = wp.array(skeleton.parent_indices, dtype=wp.int32)
+    wp_global = wp.empty(shape=(num_frames, num_joints), dtype=wp.transform)
+
+    wp.launch(
+        _compute_global_poses_batch_kernel,
+        dim=num_frames,
+        inputs=[num_joints, root_tx, wp_parent, wp_local],
+        outputs=[wp_global],
+    )
+
+    return wp_global
+
+
+def compute_global_poses_batch(skeleton, local_transforms_2d, root_tx=wp.transform_identity()):
+    """Compute global transforms for ALL frames in one kernel launch.
+
+    Returns
+    -------
+    np.ndarray, shape (num_frames, num_joints, 7), dtype float32
+        Each row is ``[px, py, pz, qx, qy, qz, qw]``.
+    """
+    return compute_global_poses_batch_wp(skeleton, local_transforms_2d, root_tx).numpy()
 
 
 def compute_global_pose(skeleton, local_transforms: List[wp.transform], root_tx=wp.transform_identity()):

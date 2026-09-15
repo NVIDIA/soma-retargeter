@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import warp as wp
-import newton
 
 from soma_retargeter.renderers.base_renderer import BaseRenderer
 from soma_retargeter.animation.skeleton import SkeletonInstance
@@ -16,13 +15,15 @@ def skinning_kernel(
     joint_weights   : wp.array(dtype=wp.float32),
     num_influences  : wp.int32,
     xform           : wp.array(dtype=wp.transform),
+    scale           : wp.float32,
+    character_pos   : wp.vec3,
     output_points   : wp.array(dtype=wp.vec3)
 ):
     i = wp.tid()
-    output_points[i] = wp.vec3(0.0, 0.0, 0.0)
+    skinned = wp.vec3(0.0, 0.0, 0.0)
     for j in range(num_influences):
-        output_points[i] += wp.transform_point(xform[joint_indices[i*num_influences + j]], points[i]) * joint_weights[i*num_influences + j]
-
+        skinned += wp.transform_point(xform[joint_indices[i*num_influences + j]], points[i]) * joint_weights[i*num_influences + j]
+    output_points[i] = character_pos + scale * (skinned - character_pos)
 
 @wp.kernel
 def update_skinned_transform_kernel(
@@ -56,15 +57,6 @@ class SkeletalMeshRenderer(BaseRenderer):
         # 1 frame for now, but the kernel supports multiple frames
         self.skinned_transforms = wp.zeros((1, skeletal_mesh.skeleton.num_joints), dtype=wp.transform)
 
-    @staticmethod
-    def _set_color(viewer, object_name, color: wp.vec3):
-        if isinstance(viewer, newton.viewer.ViewerGL):
-            if object_name in viewer.objects:
-                from pyglet import gl
-                gl.glBindVertexArray(viewer.objects[object_name].vao)
-                gl.glVertexAttrib3f(7, color[0], color[1], color[2])
-                gl.glBindVertexArray(0)
-
     def draw(self, viewer, skeleton_instance: SkeletonInstance, color: wp.vec3, id: wp.int32):
         """Skin and display the mesh for the given skeleton pose."""
         if self.skeletal_mesh.skeleton != skeleton_instance.skeleton:
@@ -83,6 +75,9 @@ class SkeletalMeshRenderer(BaseRenderer):
                 skeleton_instance.xform],
             outputs=[self.skinned_transforms])
 
+        scale = wp.float32(skeleton_instance.scale)
+        character_pos = skeleton_instance.xform.p
+
         skinned_meshes = self.skeletal_mesh.skinned_meshes
         for i in range(self.skeletal_mesh.num_skinned_meshes):
             dimension = skinned_meshes[i].num_points
@@ -97,14 +92,21 @@ class SkeletalMeshRenderer(BaseRenderer):
                     skinned_meshes[i].joint_indices,
                     skinned_meshes[i].joint_weights,
                     int(num_influences),
-                    wp.array(self.skinned_transforms[0], dtype=wp.transform)],
+                    wp.array(self.skinned_transforms[0], dtype=wp.transform),
+                    scale,
+                    character_pos],
                 outputs=[self.skinned_points[i]])
 
         for i in range(len(skinned_meshes)):
             name = f"/skeletal_mesh_{id}_{i}"
             self._register_unique_id(name)
-            SkeletalMeshRenderer._set_color(viewer, name, color)
-            viewer.log_mesh(name, self.skinned_points[i], wp.array(skinned_meshes[i].indices, dtype=wp.int32))
+            viewer.log_mesh(
+                name,
+                self.skinned_points[i],
+                wp.array(skinned_meshes[i].indices, dtype=wp.int32),
+                color=color
+                )
+
 
     def clear(self, viewer):
         """Remove all mesh objects from the viewer."""

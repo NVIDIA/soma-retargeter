@@ -1,0 +1,9 @@
+{
+    "name": "agibot_x2ultra",
+    "desc": {
+        "urdf_path": "desc/agibot_x2ultra.urdf"
+    },
+    "retarget_configs": {
+        "soma": "configs/soma_to_agibot_x2ultra_retargeter_config.json"
+    }
+}

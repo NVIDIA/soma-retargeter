@@ -105,7 +105,7 @@ class SkeletonRenderer(BaseRenderer):
         if skeleton_instance.skeleton != self.skeleton:
             raise ValueError(f"[ERROR]: SkeletonInstance.skeleton [{skeleton_instance.skeleton}] is not equal to SkeletonRenderer.skeleton [{self.skeleton}]")
 
-        global_transforms = pose_utils.compute_global_pose(self.skeleton, skeleton_instance.local_transforms, skeleton_instance.xform)
+        global_transforms = skeleton_instance.compute_global_transforms()
         wp.launch(
             _update_skeleton_lines_kernel,
             dim=len(self.bones),

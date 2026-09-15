@@ -1,6 +1,9 @@
-*.xml filter=lfs diff=lfs merge=lfs -text
-*.bvh filter=lfs diff=lfs merge=lfs -text
-*.csv filter=lfs diff=lfs merge=lfs -text
-*.usd filter=lfs diff=lfs merge=lfs -text
-*.usda filter=lfs diff=lfs merge=lfs -text
-*.gif filter=lfs diff=lfs merge=lfs -text
+*.[xX][mM][lL] filter=lfs diff=lfs merge=lfs -text
+*.[bB][vV][hH] filter=lfs diff=lfs merge=lfs -text
+*.[uU][sS][dD] filter=lfs diff=lfs merge=lfs -text
+*.[uU][sS][dD][aA] filter=lfs diff=lfs merge=lfs -text
+*.[uU][sS][dD][cC] filter=lfs diff=lfs merge=lfs -text
+*.[sS][tT][lL] filter=lfs diff=lfs merge=lfs -text
+*.[uU][rR][dD][fF] filter=lfs diff=lfs merge=lfs -text
+*.[pP][nN][gG] filter=lfs diff=lfs merge=lfs -text
+*.[gG][iI][fF] filter=lfs diff=lfs merge=lfs -text

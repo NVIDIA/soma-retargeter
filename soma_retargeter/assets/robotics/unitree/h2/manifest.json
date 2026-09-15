@@ -1,0 +1,9 @@
+{
+    "name": "unitree_h2",
+    "desc": {
+        "urdf_path": "desc/H2.urdf"
+    },
+    "retarget_configs": {
+        "soma": "configs/soma_to_h2_retargeter_config.json"
+    }
+}

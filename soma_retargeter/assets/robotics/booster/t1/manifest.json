@@ -1,0 +1,9 @@
+{
+    "name": "booster_t1",
+    "desc": {
+        "urdf_path": "desc/T1_29dof.urdf"
+    },
+    "retarget_configs": {
+        "soma": "configs/soma_to_booster_t1_retargeter_config.json"
+    }
+}

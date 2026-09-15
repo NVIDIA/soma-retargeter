@@ -1,0 +1,71 @@
+{
+    "joint_names": [
+        "LeftFoot",
+        "LeftToeBase",
+        "RightFoot",
+        "RightToeBase"
+    ],
+    "foot_channel_map": {
+        "0": 0,
+        "2": 1
+    },
+    "velocity_contact": 0.1,
+    "jerk_contact": -0.05,
+    "velocity_uncontact": 0.2,
+    "velocity_probably_lift_off": 0.05,
+    "post_contact_jerk_window": 5,
+    "transition_frames": 4,
+    "edge_propagation_frames": 8,
+    "plant_subsegment": {
+        "max_gap_frames": 2
+    },
+    "foot_landmarks": {
+        "schema_version": 1,
+        "rigs": {
+            "soma": {
+                "left": {
+                    "foot_joint": "LeftFoot",
+                    "toe_joint": "LeftToeBase",
+                    "toe_end_joint": "LeftToeEnd",
+                    "sole_normal_space": "foot",
+                    "heel_local_in_foot": [
+                        0.0066227177157998085,
+                        0.061574578285217285,
+                        0.005248075816780329
+                    ],
+                    "toe_pivot_local_in_toe": [
+                        0.016998479142785072,
+                        0.012255706824362278,
+                        0.0008695729193277657
+                    ],
+                    "sole_normal_local": [
+                        -0.2753676176071167,
+                        -0.9613336324691772,
+                        -0.003231234848499298
+                    ]
+                },
+                "right": {
+                    "foot_joint": "RightFoot",
+                    "toe_joint": "RightToeBase",
+                    "toe_end_joint": "RightToeEnd",
+                    "sole_normal_space": "foot",
+                    "heel_local_in_foot": [
+                        0.0066227177157998085,
+                        -0.061574578285217285,
+                        0.005248075816780329
+                    ],
+                    "toe_pivot_local_in_toe": [
+                        -0.017000000923871994,
+                        -0.012255706824362278,
+                        -0.0010000000474974513
+                    ],
+                    "sole_normal_local": [
+                        0.2750280499458313,
+                        0.9614315629005432,
+                        0.0030003057327121496
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -46,7 +46,7 @@ class CoordinateRenderer(BaseRenderer):
     def draw(self, viewer, transforms: List[wp.transform], scale: wp.float32, id: wp.int32):
         """Compute and display axis lines for the given transforms."""
         dim = 1
-        if isinstance(transforms, list) or isinstance(transforms, np.ndarray):
+        if isinstance(transforms, (list, np.ndarray)):
             dim = len(transforms)
 
         if dim > (self.axes_starts.size / 3):

@@ -153,7 +153,7 @@ class SkeletonInstance:
     Stores its own local transforms and world transform (xform), and
     can compute global transforms from the underlying Skeleton hierarchy.
     """
-    def __init__(self, skeleton : Skeleton, color : wp.vec3, xform : wp.transform):
+    def __init__(self, skeleton : Skeleton, color : wp.vec3, xform : wp.transform, scale : float = 1.0):
         """
         Initialize a ``SkeletonInstance`` object.
         Args:
@@ -161,10 +161,13 @@ class SkeletonInstance:
             color (wp.vec3): Color associated with this instance, e.g. for rendering.
             xform (wp.transform): World-space transform of the skeleton root for this
                                 instance (position and orientation in the scene)
+            scale (float): Uniform scale applied to bone translations at draw time only.
+                           Does not affect stored transforms. Defaults to 1.0.
         """
         self.skeleton = skeleton
         self.xform = xform
         self.color = color
+        self.scale = scale
         self.local_transforms = skeleton.reference_local_transforms
 
     def reset_local_transforms(self):
@@ -240,14 +243,23 @@ class SkeletonInstance:
 
         return self.local_transforms[joint_index]
 
-    def compute_global_transforms(self):
+    def compute_global_transforms(self, scale: float = None):
         """
         Compute the global transformation matrices for all joints in the skeleton.
 
+        Args:
+            scale: Uniform scale applied to local joint translations before computing global
+                   pose. Overrides self.scale when provided. Pass 1.0 to get unscaled results
+                   regardless of self.scale.
         Returns:
             np.ndarray: Global transformation matrices for all joints in the skeleton.
         """
-        return self.skeleton.compute_global_transforms(self.local_transforms, self.xform)
+        s = scale if scale is not None else self.scale
+        local_txs = self.local_transforms
+        if s != 1.0:
+            local_txs = local_txs.copy()
+            local_txs[:, :3] *= s
+        return self.skeleton.compute_global_transforms(local_txs, self.xform)
 
     @property
     def num_joints(self) -> int:

@@ -3,32 +3,12 @@
 
 import warp as wp
 import numpy as np
+import math
+import newton
 
 import soma_retargeter.utils.pose_utils as pose_utils
 from soma_retargeter.animation.animation_buffer import AnimationBuffer
 from soma_retargeter.animation.skeleton import SkeletonInstance
-
-
-def create_child_parent_map(model):
-    """
-    Build a mapping between child and parent joints from Newton model.
-
-    Args:
-        model: A Newton model object containing joint_parent and joint_child attributes.
-
-    Returns:
-        dict: A dictionary where keys are child joint indices and values are their
-              corresponding parent joint indices.
-    """
-    child_parent_map = {}
-    joint_parents = model.joint_parent.numpy()
-    joint_child = model.joint_child.numpy()
-    for i in range(len(joint_parents)):
-        parent_index = joint_parents[i]
-        child_index = joint_child[i]
-        child_parent_map[child_index] = parent_index
-    return child_parent_map
-
 
 def create_joint_coord_masks(model, active_body_masks, default_mask_fill_value):
     """
@@ -47,19 +27,24 @@ def create_joint_coord_masks(model, active_body_masks, default_mask_fill_value):
 
     Returns:
         numpy.ndarray: Array of mask values for each joint coordinate.
+        limit_offsets: Array of limit offsets
     """
     mask_np = np.full(model.joint_coord_count, default_mask_fill_value, dtype=np.float32)
-    joint_q_start_np = model.joint_q_start.numpy()
-    joint_dof_dim_np = model.joint_dof_dim.numpy()
-    body_name_to_idx = {get_name_from_label(k): i for i, k in enumerate(model.body_label)}
-    for (key, value) in active_body_masks.items():
-        idx = body_name_to_idx[key]
-        start_idx = joint_q_start_np[idx]
-        dim = joint_dof_dim_np[idx][1]
-        mask_np[start_idx:start_idx+dim] = value
+    limit_offsets_np = np.full([2, model.joint_coord_count], 1.0, dtype=np.float32)
+    if active_body_masks is not None:
+        joint_q_start_np = model.joint_q_start.numpy()
+        joint_dof_dim_np = model.joint_dof_dim.numpy()
+        body_name_to_idx = {get_name_from_label(k): i for i, k in enumerate(model.body_label)}
+        for (key, value) in active_body_masks.items():
+            idx = body_name_to_idx[key]
+            start_idx = joint_q_start_np[idx]
+            dim = joint_dof_dim_np[idx][1]
 
-    return mask_np
+            mask_np[start_idx:start_idx+dim] = value[0]
+            limit_offsets_np[0, start_idx:start_idx+dim] = value[1]
+            limit_offsets_np[1, start_idx:start_idx+dim] = value[2]
 
+    return mask_np, limit_offsets_np
 
 def create_buffer_with_initialization_frames(
         init_pose: SkeletonInstance,
@@ -137,3 +122,71 @@ def get_name_from_label(label: str):
         The final path component of the label.
     """
     return label.split("/")[-1]
+
+def get_filtered_joint_names(model, joint_types: list[newton.JointType]):
+    return [get_name_from_label(label) for i, label in enumerate(model.joint_label) if model.joint_type[i] in joint_types]
+
+def compute_ground_offset(robot_builder: newton.ModelBuilder) -> float:
+    """
+    Return the Z-offset needed so that the lowest collision shape of a
+    robot sits exactly at Z = 0 in its default (zero-joint-angle) pose.
+    This is useful for URDFs that don't have a consistent convention for the root link height.
+
+    Accepts an already-populated ``ModelBuilder`` so the caller can reuse
+    the same builder instead of parsing the asset a second time.
+    """
+    model = robot_builder.finalize()
+    state = model.state()
+    newton.eval_fk(model, model.joint_q, model.joint_qd, state)
+
+    if model.shape_collision_aabb_lower is None or model.shape_count == 0:
+        print("[WARNING] compute_ground_offset: no collision shapes found, returning 0.0")
+        return 0.0
+
+    aabb_lower = model.shape_collision_aabb_lower.numpy()
+    aabb_upper = model.shape_collision_aabb_upper.numpy()
+    shape_bodies = model.shape_body.numpy()
+    shape_tfs = model.shape_transform.numpy()
+    body_q = state.body_q.numpy()
+
+    min_z = math.inf
+
+    x_axis = wp.vec3(1.0, 0.0, 0.0)
+    y_axis = wp.vec3(0.0, 1.0, 0.0)
+    z_axis = wp.vec3(0.0, 0.0, 1.0)
+    for i in range(model.shape_count):
+        body_idx = int(shape_bodies[i])
+        if body_idx < 0:
+            continue
+
+        lo = aabb_lower[i]
+        hi = aabb_upper[i]
+
+        shape_tx = wp.transform(*shape_tfs[i])
+        body_tx = wp.transform(*body_q[body_idx])
+        world_tx = body_tx * shape_tx
+
+        # Project the rotated AABB onto the world Z axis to find its lowest point
+        world_q = world_tx.q
+        world_p = world_tx.p
+        r0 = wp.dot(z_axis, wp.quat_rotate(world_q, x_axis))
+        r1 = wp.dot(z_axis, wp.quat_rotate(world_q, y_axis))
+        r2 = wp.dot(z_axis, wp.quat_rotate(world_q, z_axis))
+        center = lo + (hi - lo) * 0.5
+        extent = (hi - lo) * 0.5
+        center_z = float(r0 * center[0] + r1 * center[1] + r2 * center[2] + world_p[2])
+        extent_z = float(abs(r0) * extent[0] + abs(r1) * extent[1] + abs(r2) * extent[2])
+        shape_min = center_z - extent_z
+        min_z = min(min_z, shape_min)
+
+    if math.isinf(min_z):
+        print("[WARNING] compute_ground_offset: no collision shapes found, returning 0.0")
+        return 0.0
+
+    return -min_z
+
+def compute_urdf_ground_offset(urdf_path: str) -> float:
+    """Parse a URDF and return its ground offset that can be precomputed and cached for later use."""
+    builder = newton.ModelBuilder()
+    builder.add_urdf(urdf_path, floating=True)
+    return compute_ground_offset(builder)

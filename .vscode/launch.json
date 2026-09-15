@@ -10,7 +10,7 @@
             "args": [
                 "--config", "${workspaceFolder}/assets/default_bvh_to_csv_converter_config.json",
                 "--viewer", "gl"]
-        },
+        },     
         {
             "name": "BVH To CSV [Batch Mode]",
             "type": "debugpy",
@@ -20,6 +20,26 @@
             "args": [
                 "--config", "${workspaceFolder}/assets/default_bvh_to_csv_converter_config.json",
                 "--viewer", "null"]
+        },
+        {
+            "name": "Robot Setup: Robot Configurator",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/app/tools/robot_config_generator.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "${workspaceFolder}/app/tools/assets/robot_configurator/robot_config_generator_config.json",
+                "--viewer", "gl"]
+        },
+        {
+            "name": "Robot Setup: IK Weight Optimizer App",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/app/tools/ik_weight_optimizer.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "${workspaceFolder}/app/tools/assets/ik_optimizer/ik_weight_optimizer_config.json"
+            ]
         }
     ]
 }

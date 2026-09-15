@@ -1,0 +1,201 @@
+{
+    "num_initialization_frames": 10,
+    "num_stabilization_frames": 5,
+    "human_robot_scaler_config": "configs/soma_to_booster_t1_scaler_config.json",
+    "ik_iterations": 24,
+    "joint_limit_weight": 10.0,
+    "smooth_joint_filter_weight": 5.5,
+    "ground_collision_weight": 0.0,
+    "self_penetration_weight": 0.0,
+    "enable_post_processing": true,
+    "enable_contact_processing": true,
+    "post_processing": {
+        "robot_config": "configs/booster_t1_post_processing_config.json"
+    },
+    "smooth_joint_filter_objective_body_masks": {
+        "AL1": [
+            1.1,
+            1.02,
+            1.02
+        ],
+        "AL2": [
+            1.0,
+            0.0,
+            1.3
+        ],
+        "AL3": [
+            0.3,
+            1.02,
+            1.02
+        ],
+        "AR1": [
+            1.1,
+            1.02,
+            1.02
+        ],
+        "AR2": [
+            1.0,
+            1.3,
+            0.0
+        ],
+        "AR3": [
+            0.3,
+            1.02,
+            1.02
+        ]
+    },
+    "ik_match_table": {
+        "Hips": {
+            "t_body": "Waist",
+            "r_body": "Waist",
+            "t_weight": 50.0,
+            "r_weight": 10.0
+        },
+        "Chest": {
+            "t_body": "Trunk",
+            "r_body": "Trunk",
+            "t_weight": 2.0,
+            "r_weight": 10.0
+        },
+        "Head": {
+            "t_body": "H2",
+            "r_body": "H2",
+            "t_weight": 0.7,
+            "r_weight": 0.3
+        },
+        "LeftArm": {
+            "t_body": "AL2",
+            "r_body": "AL2",
+            "t_weight": 1.5,
+            "r_weight": 0.65
+        },
+        "LeftForeArm": {
+            "t_body": "AL4",
+            "r_body": "AL4",
+            "t_weight": 0.7,
+            "r_weight": 0.5
+        },
+        "LeftHand": {
+            "t_body": "left_hand_link",
+            "r_body": "left_hand_link",
+            "t_weight": 2.0,
+            "r_weight": 1.2
+        },
+        "RightArm": {
+            "t_body": "AR2",
+            "r_body": "AR2",
+            "t_weight": 1.5,
+            "r_weight": 0.65
+        },
+        "RightForeArm": {
+            "t_body": "AR4",
+            "r_body": "AR4",
+            "t_weight": 0.7,
+            "r_weight": 0.5
+        },
+        "RightHand": {
+            "t_body": "right_hand_link",
+            "r_body": "right_hand_link",
+            "t_weight": 2.0,
+            "r_weight": 1.2
+        },
+        "LeftLeg": {
+            "t_body": "Hip_Roll_Left",
+            "r_body": "Hip_Roll_Left",
+            "t_weight": 1.5,
+            "r_weight": 0.15
+        },
+        "LeftShin": {
+            "t_body": "Shank_Left",
+            "r_body": "Shank_Left",
+            "t_weight": 1.0,
+            "r_weight": 1.0
+        },
+        "LeftFoot": {
+            "t_body": "left_foot_link",
+            "r_body": "left_foot_link",
+            "t_weight": 30.0,
+            "r_weight": 2.0
+        },
+        "RightLeg": {
+            "t_body": "Hip_Roll_Right",
+            "r_body": "Hip_Roll_Right",
+            "t_weight": 1.5,
+            "r_weight": 0.15
+        },
+        "RightShin": {
+            "t_body": "Shank_Right",
+            "r_body": "Shank_Right",
+            "t_weight": 1.0,
+            "r_weight": 1.0
+        },
+        "RightFoot": {
+            "t_body": "right_foot_link",
+            "r_body": "right_foot_link",
+            "t_weight": 30.0,
+            "r_weight": 2.0
+        }
+    },
+    "collision_groups": [
+        [
+            "Trunk"
+        ],
+        [
+            "Hip_Pitch_Left",
+            "Hip_Roll_Left",
+            "Hip_Yaw_Left"
+        ],
+        [
+            "Shank_Left"
+        ],
+        [
+            "Ankle_Cross_Left",
+            "left_foot_link"
+        ],
+        [
+            "Hip_Pitch_Right",
+            "Hip_Roll_Right",
+            "Hip_Yaw_Right"
+        ],
+        [
+            "Shank_Right"
+        ],
+        [
+            "Ankle_Cross_Right",
+            "right_foot_link"
+        ],
+        [
+            "Waist"
+        ],
+        [
+            "H1",
+            "H2"
+        ],
+        [
+            "AL1",
+            "AL2"
+        ],
+        [
+            "AL3",
+            "AL4"
+        ],
+        [
+            "AL5",
+            "AL6",
+            "left_hand_link"
+        ],
+        [
+            "AR1",
+            "AR2"
+        ],
+        [
+            "AR3",
+            "AR4"
+        ],
+        [
+            "AR5",
+            "AR6",
+            "right_hand_link"
+        ]
+    ]
+}

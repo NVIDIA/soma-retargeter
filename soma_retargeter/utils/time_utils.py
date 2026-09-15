@@ -11,12 +11,12 @@ def frame_index_from_time(time, sample_rate, num_frames):
     Given a time (in seconds) and a sample rate (frames per second), this computes
     the integer frame index in a sequence and a 0–1 blend factor toward the next
     frame, clamped to the valid frame range [0, num_frames - 1].
-    
+
     Args:
         time (float): The time value in seconds.
         sample_rate (float): The sampling rate (frames per second).
         num_frames (int): The total number of frames in the sequence.
-    
+
     Returns:
         tuple (int, float):
             - frame: The current frame index, clamped between 0 and num_frames-1.

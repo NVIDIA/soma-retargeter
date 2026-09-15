@@ -1,131 +1,95 @@
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/github/v/tag/NVIDIA/soma-retargeter?sort=date&label=version)](https://github.com/NVIDIA/soma-retargeter/tags)
+
 # SOMA Retargeter
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-![SOMA Retargeter Banner](assets/docs/banner.gif)
+![SOMA Retargeter banner](documentation/images/banner_allrobots.gif)
 
-Convert [SOMA](https://github.com/NVlabs/SOMA-X) human motion captures into humanoid robot joint animation. Takes BVH motion files as input and produces robot-playable CSV joint data as output using GPU-optimized inverse kinematics via [Newton](https://github.com/newton-physics/newton) and high-performance computation with [NVIDIA Warp](https://github.com/NVIDIA/warp).
+SOMA Retargeter converts human motion in a SOMA-skeleton BVH file into joint animation for a humanoid robot. The result is a CSV file that can be inspected, compared, or passed to downstream robot-control and simulation tools.
 
-The retargeting pipeline handles proportional human-to-robot scaling, multi-objective IK solving with joint limits, feet stabilization to maintain ground contact, and per-DOF joint limit clamping. Currently supports SOMA as the input skeleton and Unitree G1 (29 DOF) as the output robot. Additional robot targets are planned.
+Start with the bundled motion and robot, confirm that the software works on your computer, and then move on to your own files and tuning.
 
-SOMA Retargeter is part of the [SOMA body model](https://github.com/NVlabs/SOMA-X) ecosystem for humanoid motion data.
+> **Important:** SOMA Retargeter is in active beta, so APIs and features may change without notice. Generated motion is kinematic; validate its safety, feasibility, and controller compatibility in simulation before hardware use.
 
-> **Note:** This project is in active development. The API may change between releases as the design is refined.
+## What the retargeter does
 
-## Requirements
+The human source and target robot have different proportions and joints. SOMA  
+Retargeter does the following:
 
-- **Python:** 3.12
-- **Git LFS:** Installed and initialized for asset downloads
-- **OS:** Windows (x86-64) and Linux (x86-64, aarch64)
-- **GPU:** NVIDIA GPU (Maxwell or newer), driver 545+ (CUDA 12). No local CUDA Toolkit installation required.
+1. reads a SOMA-base skeleton BVH animation;
+2. retargets human scale joints to the robot's proportions;
+3. solves inverse kinematics for each frame;
+4. stabilizes contacts and clamps configured joint limits;
+5. writes the robot root pose and actuated joint values to CSV.
 
-## Installation
+![Retargeting pipeline from BVH to robot CSV](documentation/images/retargeting-pipeline.png)
 
-<details>
 
-<summary>Setup instructions</summary>
+The repository includes:
 
-### Method 1 (conda + pip)
+- 10 example BVH motions and matching CSV results for all five bundled robots;
+- an interactive viewer for loading, retargeting, inspecting, and saving one motion;
+- a headless mode for converting folders of motions;
+- configuration and model assets for `unitree_g1`, `unitree_h2`, `booster_t1`, `agibot_x2ultra`, and `agibot-a3t3`;
+- tools for configuring another robot and tuning and optimizing inverse-kinematics weights.
+- 15 BVH motions for inverse-kinematics weights optimization
 
-#### 1. Create and Activate Conda Environment
+## Motion data and credit
+The bundled BVH motion examples and optimizer inputs are provided with permission from [Bones](https://bones.studio/) and are drawn from the [BONES-SEED dataset](https://bones.studio/datasets/seed). We thank the Bones team for supporting this release. See BONES-SEED for the broader motion collection and licensing options.
 
-```bash
-conda create -n soma-retargeter python=3.12 -y
-conda activate soma-retargeter
-```
 
-#### 2. Download LFS Assets
+## Documentation structure
 
-```bash
-git lfs pull
-```
+Documentation from setup through batch processing:
 
-#### 3. Install the Library
+![Documentation workflow from setup through batch processing](documentation/images/workflow-overview.png)
 
-```bash
-pip install .
-```
+1. **[Installation](documentation/installation.md)** — install prerequisites, create the environment, download assets, and verify the setup.
+2. **[First retarget](documentation/first-retarget.md)** — convert one bundled BVH in the interactive viewer and save a CSV.
+3. **[Robot configurator](documentation/robot-configurator.md)** — begin the guided process of adding a robot. The later tutorial uses Unitree H1 as the new-robot example;
+4. **[Robot configuration reference](documentation/robot-configuration-reference.md)** — understand manifests, model descriptions, retargeting objectives, scaling, and post-processing settings.
+5. **[Contact detection & foot-plant correction configuration](documentation/foot-contact.md)** — detailed description of contact detection and foot planting settings.
+6. **[Interactive retargeting](documentation/interactive-retargeting.md)** — learn viewer controls and work with SOMA BVH files.
+7. **[IK weight optimizer](documentation/ik-weight-optimizer.md)** — optimize for better objective weights.
+8. **[Compare and tune](documentation/compare-and-tune.md)** — evaluate results and refine a robot configuration.
+9. **[Batch retargeting](documentation/batch-retargeting.md)** — convert a directory tree without opening a viewer.
+10. **[Code overview](documentation/code-overview.md)** — review the main application entry points and `soma_retargeter` package modules.
+11. **[Troubleshooting](documentation/troubleshooting.md)** — diagnose installation, viewer, input, GPU, and output problems.
 
-### Method 2 (uv)
+## Inputs and outputs
 
-#### 1. Install uv
+### Input: SOMA BVH
 
-Follow the [official installation guide](https://docs.astral.sh/uv/getting-started/installation/) if `uv` is not yet installed.
+A `.bvh` file contains a skeleton hierarchy and one pose per animation frame. The retargeter currently expects the source hierarchy and naming used by the SOMA base skeleton. An arbitrary BVH exported from another character or motion capture package may load incorrectly or fail because its skeleton is different.
 
-#### 2. Download LFS Assets
+For the first run, use `assets/motions/bvh/Neutral_walk_forward_002__A057.bvh`. Keeping the input known removes one source of incertainty while you test the installation.
 
-```bash
-git lfs pull
-```
+### Output: robot CSV
 
-#### 3. Sync the Project
+The `.csv` output stores the root pose and actuated robot joint values over time. Joint columns correspond to the selected robot model. Two target robots can have different columns, even when they were generated from the same BVH.
 
-`uv sync` creates an isolated `.venv` virtual environment inside the project directory, installs the correct Python version and resolves all dependencies.
+The bundled CSV files under `assets/motions/csv/` are organized by robot and provide reference results for all five bundled robots. Select the folder matching your target robot. Your result should have the same general motion, but exact values can change when configuration or dependency versions change.
 
-```bash
-uv sync
-```
+## Bundled robot targets
 
-### Platform-specific notes
+Use these exact target names when using bundled robots:
 
-**Note (Linux):** For the GUI viewer to work, install `tkinter`
+- `unitree_g1` — the default target and the best choice for the first tutorial;
+- `unitree_h2`;
+- `booster_t1`;
+- `agibot_x2ultra`;
+- `agibot-a3t3`.
 
-```bash
-sudo apt-get install python3.12-tk
-```
+The interactive viewer lists discovered targets in its robot selector. Headless conversion reads the target from the `retarget_target` field in the converter configuration.
 
-**Note (Windows):** If `imgui-bundle` fails to install, the Microsoft Visual C++ Redistributables may be missing. Download from the [official Microsoft documentation](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist).
+## Command convention in this guide
 
-</details>
-
-## Motion Data
-
-This repo includes 10 sample BVH/CSV pairs in `assets/motions/` for immediate testing.
-
-For large-scale motion data, see the [SEED dataset](https://huggingface.co/datasets/bones-studio/seed) (Skeletal Everyday Embodiment Dataset) published by [Bones Studio](https://huggingface.co/bones-studio). SEED provides a large-scale collection of human motions on the SOMA uniform-proportion skeleton, which is the expected input format for this tool. The G1 robot motion data included in SEED was retargeted using SOMA Retargeter.
-
-## Quick Start
-
-> When using **uv** (Method 2), replace `python` with `uv run` in the commands below.
-
-### Interactive viewer (OpenGL)
+Run commands from the repository root. The documentation uses `uv` because it creates and manages the project environment without requiring you to activate it manually:
 
 ```bash
-python ./app/bvh_to_csv_converter.py --config ./assets/default_bvh_to_csv_converter_config.json --viewer gl
+uv run python app/bvh_to_csv_converter.py --config assets/default_bvh_to_csv_converter_config.json --viewer gl
 ```
 
-![Interactive viewer interface](assets/docs/interactive-viewer-screenshot.png)
-
-The viewer displays the source SOMA motion alongside the retargeted robot in a 3D viewport. Use the right panel to load BVH files, run retargeting, and save CSV output. Playback controls at the bottom allow scrubbing, speed adjustment, and looping. Toggle visibility of the skinned mesh, skeleton, joint axes, and positioning gizmos.
-
-### Batch conversion (headless)
-
-Process a folder of BVH files without a display. Set `import_folder` and `export_folder` in the config file, then run:
-
-```bash
-python ./app/bvh_to_csv_converter.py --config ./assets/default_bvh_to_csv_converter_config.json --viewer null
-```
-
-Batch mode recursively finds all `.bvh` files in the import folder, processes them in configurable batch sizes, and writes CSV files to the export folder mirroring the input directory structure.
-
-## Code Overview
-
-### `app/`
-
-| File | Description |
-|------|-------------|
-| `bvh_to_csv_converter.py` | Main entry point. Drives both interactive and headless batch retargeting modes. |
-
-### `soma_retargeter/`
-
-| Module | Description |
-|--------|-------------|
-| `animation/` | Core data structures for skeletons, animation buffers, IK, and skinned meshes. |
-| `assets/` | File I/O for BVH, CSV, and USD formats. |
-| `pipelines/` | Retargeting pipeline: IK solving, feet stabilization, and joint limit clamping. |
-| `robotics/` | Human-to-robot scaling and robot output formatting. |
-| `renderers/` | Visualization for the interactive viewer. |
-| `utils/` | Math, pose, coordinate conversion, Newton and Warp helpers. |
-| `configs/` | JSON configuration for retargeting, scaling, and feet stabilization parameters. |
+Paths with forward slashes work in PowerShell and in Linux shells. If a path you provide contains spaces, enclose it in quotes.
 
 ## Related Work
 
@@ -145,6 +109,24 @@ This project draws inspiration and builds upon excellent open-source work, inclu
 
 ## License
 
-This codebase is licensed under [Apache-2.0](LICENSE).
+NVIDIA-authored source code is licensed under [Apache-2.0](LICENSE).
 
-This project will download and install additional third-party open source software projects. Review the license terms of these open source projects before use.
+The bundled motion data under `assets/motions/bvh/`, `assets/motions/optimizer/`, and `assets/motions/csv/` is licensed separately under the [NVIDIA Sample Data Evaluation License](assets/motions/LICENSE.txt). It is not covered by Apache-2.0.
+
+The repository directly includes third-party robot-description and mesh assets:
+
+- Unitree G1 and Unitree H2 assets are licensed under BSD-3-Clause. See [`licenses/unitree-LICENSE.txt`](licenses/unitree-LICENSE.txt).
+- Booster Robotics T1 assets are licensed under BSD-3-Clause. See [`licenses/booster-LICENSE.txt`](licenses/booster-LICENSE.txt).
+- AGIBot X2 and AGIBot A3 assets are licensed under Mulan PSL v2. See [`licenses/agibot-LICENSE.txt`](licenses/agibot-LICENSE.txt) and the pinned upstream [X2 source](https://github.com/AgibotTech/agibot_x2_urdf/tree/77f43eb0904dae4c48ccd9154fee824f8ffd4d38/X2_URDF-v1.4.0) and [A3 source](https://github.com/AgibotTech/A3-A3U-robot-model/tree/589f508ff357447c610a3f3004419035ddc8f153/a3_t3d0).
+
+The applicable robot-asset license texts and path scopes are also included in the top-level [LICENSE](LICENSE). License copies for Python dependencies are available in [`licenses/`](licenses/). Python dependencies are installed from package registries rather than copied into this repository.
+
+Some manifest-driven workflows can ask NVIDIA Newton to retrieve a separately hosted robot asset at runtime. Those assets remain subject to their upstream terms and are not bundled by SOMA Retargeter unless they are present in this repository.
+
+## Where to go next
+
+Go to **[Installation](documentation/installation.md)** to prepare Python, Git LFS, the GPU driver, and the project environment. If you already completed installation, run the verification command there before continuing to **[First retarget](documentation/first-retarget.md)**.
+
+---
+
+[Next: Installation →](documentation/installation.md)

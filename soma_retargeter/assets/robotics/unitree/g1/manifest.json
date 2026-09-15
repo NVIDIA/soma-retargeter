@@ -1,0 +1,13 @@
+{
+    "targets": [
+        {
+            "name": "unitree_g1",
+            "desc": {
+                "xml_path": "desc/mjcf/g1_29dof_rev_1_0.xml"
+            },
+            "retarget_configs": {
+                "soma": "configs/soma_to_g1_retargeter_config.json"
+            }
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+{
+    "name": "agibot-a3t3",
+    "desc": {
+        "urdf_path": "desc/agibot-a3t3.urdf"
+    },
+    "retarget_configs": {
+        "soma": "configs/soma_to_agibot-a3t3_retargeter_config.json"
+    }
+}

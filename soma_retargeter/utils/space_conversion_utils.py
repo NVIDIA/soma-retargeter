@@ -87,4 +87,3 @@ class SpaceConverter:
     def transform(self, transform):
         """Convert a transform from the source coordinate space to the internal representation."""
         return wp.mul(wp.transform(wp.vec3(0, 0, 0), self.converter), transform)
-    
