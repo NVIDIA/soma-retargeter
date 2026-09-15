@@ -1,6 +1,6 @@
 {
     "target_type": "unitree_h2",
-    "input_folder": "",
+    "input_folder": "../../../../assets/motions/optimizer",
     "output_folder": "output",
     "outer_iterations": 50,
     "extra_robot_paths": ["assets/robotics"],
