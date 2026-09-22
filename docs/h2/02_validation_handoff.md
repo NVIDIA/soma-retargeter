@@ -1,8 +1,10 @@
 # H2 CSV 검증과 학습 인계
 
+문서 개정: 2026-09-22 · 원격 대조: `305daa5a5aaa029b10348463d66d40d3ea44e670`.
+
 작성 기준: 2026-09-17 · `MFIWO/soma-retargeter` / `h2-retarget-support` / `b2d7ce7a5584c2bd290042baed83cf0c69256873`.
 
-이 문서는 해당 commit의 코드·설정·기존 문서를 대조한 안내서다. 문서 정리 과정에서 PPO, 데이터 변환, GPU 평가 또는 실기 제어를 실행하지 않았다. 아래 명령은 데이터·checkpoint·환경이 준비된 작업용 머신에서 사용하는 템플릿이다. 실행 경로가 존재한다는 것과 학습 성능이 검증됐다는 것은 구분한다.
+본 문서는 명시된 코드 버전의 구현·설정·실험 기록을 기준으로 작성한 기술 인수인계 자료다. 단계별 실행 명령과 확인 기준은 [실행 가이드](00_execution_runbook.md)를 참조한다.
 
 ## CSV 계약
 
@@ -18,6 +20,10 @@
 CSV 자체의 열 이름만으로 FPS를 복원할 수 없다. source BVH frame time과 출력 frame 수/시간 범위를 함께 보관한다. quaternion을 쓰는 downstream에서는 Euler 변환과 xyzw/wxyz 순서를 명시한다. `Frame`이나 root Euler를 관절 action으로 읽지 않는다.
 
 H2 schema는 머리·양손목을 포함한 31축이다. 발목 roll/pitch 순서, head pitch/yaw 위치를 특히 확인한다. 이 schema를 다른 프로젝트의 27축 H2 계약과 혼용하지 않는다.
+
+### 공식 v0.2 CSV와의 차이
+
+위 schema와 radians 규칙은 이 fork의 계약이다. NVIDIA 공식 v0.2는 cm/degree와 로봇 관절 이름 기반 header를 사용한다. 공식 결과를 기존 WBC 변환기에 전달하려면 열 이름·관절 순서·단위·모델·FPS를 연결하는 별도 검증이 필요하다. [공식 CSV 구현](https://github.com/NVIDIA/soma-retargeter/blob/1733b820f3cdf6f74bbc81a10bda3201b38c7bcf/soma_retargeter/io/csv.py).
 
 ## 필수 확인
 

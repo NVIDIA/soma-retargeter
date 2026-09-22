@@ -1,10 +1,12 @@
 # SOMA BVH → H2 CSV
 
+문서 개정: 2026-09-22 · 원격 대조: `305daa5a5aaa029b10348463d66d40d3ea44e670`.
+
 작성 기준: 2026-09-17 · `MFIWO/soma-retargeter` / `h2-retarget-support` / `b2d7ce7a5584c2bd290042baed83cf0c69256873`.
 
-이 문서는 해당 commit의 코드·설정·기존 문서를 대조한 안내서다. 문서 정리 과정에서 PPO, 데이터 변환, GPU 평가 또는 실기 제어를 실행하지 않았다. 아래 명령은 데이터·checkpoint·환경이 준비된 작업용 머신에서 사용하는 템플릿이다. 실행 경로가 존재한다는 것과 학습 성능이 검증됐다는 것은 구분한다.
+본 문서는 명시된 코드 버전의 구현·설정·실험 기록을 기준으로 작성한 기술 인수인계 자료다. 단계별 실행 명령과 확인 기준은 [실행 가이드](00_execution_runbook.md)를 참조한다.
 
-원본 대비 수치·코드 변경과 사용자 튜닝 경험은 [변경과 시행착오](03_upstream_changes_and_tuning.md)에 정리했다. IK joint filter weight, 시간축 filtering, actuator PD gain을 구분한다.
+원본 대비 수치·코드 변경과 개발 당시 튜닝 기록은 [변경 및 검증 이력](03_upstream_changes_and_tuning.md)에 정리했다. IK joint filter weight, 시간축 filtering, actuator PD gain을 구분한다.
 
 ## 1. 환경과 asset
 
@@ -14,8 +16,8 @@ git clone --branch h2-retarget-support --single-branch \
 cd soma-retargeter-h2
 git lfs install
 git lfs pull
-conda create -n soma-retargeter python=3.12 -y
-conda activate soma-retargeter
+conda create -n soma-retargeter-h2 python=3.12 pip tk -y
+conda activate soma-retargeter-h2
 python -m pip install -e .
 ```
 

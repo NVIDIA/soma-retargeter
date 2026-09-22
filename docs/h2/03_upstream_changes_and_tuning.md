@@ -1,6 +1,8 @@
 # H2 retarget: NVIDIA 원본 대비 변경과 손·발목 튜닝 기록
 
-작성·소스 대조: 2026-09-17. 사용자가 직접 조정한 경험과 저장소에서 검증 가능한 수치를 분리해서 기록한다. 이번 작업에서 retarget·학습·실기 평가를 새로 실행하지 않았다.
+문서 개정: 2026-09-22 · 원격 대조: `305daa5a5aaa029b10348463d66d40d3ea44e670`.
+
+검토 기준일: 2026-09-17. 본 문서는 개발 당시 관찰과 Git의 설정·구현 차이를 근거로 H2 retarget 변경 이력을 정리한다. 실행 명령과 확인 기준은 [H2 retarget 실행 가이드](00_execution_runbook.md)를 참조한다.
 
 ## 1. 비교한 원본과 변경 이력
 
@@ -14,15 +16,15 @@
 
 당시 원본에 있던 BVH 처리, human-to-robot scaler, Newton IK, joint-limit objective, feet stabilizer, CSV export를 재사용했다. fork는 G1 전용 robot/config/asset 선택을 H2에도 적용하고 31-DoF 출력 계약과 로컬 사용 경로를 추가했다. H2 브랜치에 뒤의 T1 추가 commit도 들어 있지만 여기서는 H2 활성 설정을 설명한다.
 
-최신 NVIDIA v0.2에는 [H2 config](https://github.com/NVIDIA/soma-retargeter/blob/1733b820f3cdf6f74bbc81a10bda3201b38c7bcf/soma_retargeter/assets/robotics/unitree/h2/configs/soma_to_h2_retargeter_config.json)와 T1 config가 이미 있다. 따라서 “현재 NVIDIA 원본은 H2가 없다”는 설명은 쓰지 않는다. v0.2는 `ik_match_table`, mask 배열, post/contact processing 등 schema가 달라 기존 fork JSON을 무검증으로 복사하면 안 된다. 이번 감사는 v0.2 migration/성능 비교를 수행하지 않았다.
+최신 NVIDIA v0.2에는 [H2 config](https://github.com/NVIDIA/soma-retargeter/blob/1733b820f3cdf6f74bbc81a10bda3201b38c7bcf/soma_retargeter/assets/robotics/unitree/h2/configs/soma_to_h2_retargeter_config.json)와 T1 config가 이미 있다. 본 비교의 자체 변경 범위는 당시 사용한 v0.1 기준으로 해석한다. v0.2는 `ik_match_table`, mask 배열, post/contact processing 등 schema가 달라 기존 fork JSON을 무검증으로 복사하면 안 된다. v0.2 migration 및 버전 간 품질 비교는 본 검토 범위에 포함되지 않는다.
 
-## 2. 사용자 경험과 Git에서 확인한 한계
+## 2. 초기 관찰 및 기록 범위
 
-**사용자 회고:** 처음 G1식 설정을 H2에 적용했을 때 손과 발목 retarget이 부자연스러웠고, 부드럽게 하는 gain 등을 직접 조절해 적절한 수준을 찾았다.
+**초기 관찰(개발 담당자 보고):** G1 기반 설정 적용 시 H2의 손·발목 retarget이 부자연스럽게 나타났다. 담당자는 관련 objective weight와 후처리 설정을 조정하는 과정에서 개선을 관찰했다. 변경별 기여도는 별도 평가 자료가 필요하다.
 
 **확인한 저장 위치:** 이 브랜치의 retarget 관련 수치는 YAML이 아니라 `soma_retargeter/configs/h2/`의 JSON에 있다. H2 본 IK config의 Git path history는 `99f166e9` 한 commit만 반환한다. 최종값이 묶여 저장돼 있어, 5.5→중간값A→중간값B→30처럼 실제 시도한 sweep 순서나 각 시도의 영상을 복원할 수 없다.
 
-아래는 **원본 G1 config와 commit에 남은 H2 config의 차이**다. 사용자 경험을 기록하되, 이 표를 모든 중간 실험의 before/after 성능 증거로 취급하지 않는다.
+아래는 **원본 G1 config와 commit에 남은 H2 config의 차이**다. 개발 관찰을 근거 수준에 맞게 구분하되, 이 표를 모든 중간 실험의 before/after 성능 증거로 취급하지 않는다.
 
 ## 3. 본 IK: 실제로 바뀐 값과 그대로인 값
 
@@ -100,8 +102,8 @@
 
 T1 balanced의 94% reach conditioning·8 Hz 시간축 필터·T1 audit/sharding을 H2 branch에서 이미 사용 중인 기능으로 적지 않는다. 두 브랜치의 날짜와 code snapshot이 다르다.
 
-## 7. 남겨야 할 튜닝 증거와 학습으로 넘어가는 기준
+## 7. 튜닝 결과 관리 및 학습 인계 기준
 
-사용자의 당시 손·발목 문제와 최종 조정은 기록했지만, 아직 없는 자료는 **처음 실패한 BVH/CSV, 중간 config, 동일 clip 전후 영상, 수치별 효과**다. 이 자료 없이 원인·최적값을 확정하지 않는다.
+추가 확보 자료는 **초기 실패 BVH/CSV, 중간 config, 동일 clip의 전후 영상, 변경별 정량 효과**다. 해당 자료가 확보되기 전까지 최종 설정의 적용 범위와 개별 조치의 기여도는 제한적으로 해석한다.
 
 다음 튜닝에서는 같은 입력·asset·FPS로 본 IK와 feet postprocessing을 각각 비교하고, 손 endpoint/orientation, knee/ankle ROM·limit saturation, stance foot slip/tilt, joint 속도 spike를 함께 남긴다. retarget에서 이미 틀어진 reference와 policy가 reference를 따라가지 못하는 경우를 분리한다. 고정 motion batch나 teacher 보존은 학습 중 forgetting을 다루지만, 잘못된 retarget 자체를 수정하는 대체 수단은 아니다.
