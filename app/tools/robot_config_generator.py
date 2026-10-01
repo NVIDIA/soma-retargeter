@@ -1152,6 +1152,7 @@ class Viewer:
         self.loaded_reference_joint_q = None
         self.dof_joints = []
         q_start_np    = self.model.joint_q_start.numpy()
+        qd_start_np   = self.model.joint_qd_start.numpy()
         joint_type_np = self.model.joint_type.numpy()
         lo_arr = self.model.joint_limit_lower.numpy() \
             if getattr(self.model, "joint_limit_lower", None) is not None else None
@@ -1162,10 +1163,12 @@ class Viewer:
             if joint_type_np[i] != newton.JointType.REVOLUTE:
                 continue
             name   = newton_utils.get_name_from_label(label)
-            q_idx  = int(q_start_np[i])
+            q_idx   = int(q_start_np[i])
+            # Limits are per-DOF, not per-coordinate: the free root has 7 coords but 6 DOFs.
+            dof_idx = int(qd_start_np[i])
             lo, hi = -3.14159, 3.14159
-            if lo_arr is not None and q_idx < len(lo_arr):
-                raw_lo, raw_hi = float(lo_arr[q_idx]), float(hi_arr[q_idx])
+            if lo_arr is not None and dof_idx < len(lo_arr):
+                raw_lo, raw_hi = float(lo_arr[dof_idx]), float(hi_arr[dof_idx])
                 if abs(raw_lo) < 1e5: lo = max(raw_lo, -6.28)
                 if abs(raw_hi) < 1e5: hi = min(raw_hi,  6.28)
             self.dof_joints.append((name, q_idx, lo, hi))

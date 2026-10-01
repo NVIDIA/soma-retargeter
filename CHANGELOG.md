@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.1] - 2026-10-01
+
+### Fixed
+
+- Robot Configurator now reads joint limits by DOF index instead of coordinate index, so joints after the free root no longer get the wrong range in the DOF editor.
+
 ## [0.2.0] - 2026-09-15
 
 ### Added
