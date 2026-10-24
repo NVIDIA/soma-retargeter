@@ -16,6 +16,7 @@ import soma_retargeter.pipelines.utils as pipeline_utils
 import soma_retargeter.robotics.robot_registry as robot_registry
 from soma_retargeter.pipelines.ik_solver import IKSolver, BaseIKSolver
 from soma_retargeter.pipelines.ik_pass import BasePass, PostProcessPass
+from soma_retargeter.pipelines.joint_continuity import IKJointContinuity
 
 from soma_retargeter.animation.skeleton import Skeleton, SkeletonInstance
 from soma_retargeter.animation.animation_buffer import AnimationBuffer
@@ -100,6 +101,7 @@ class SomaRetargetingPipeline:
         self.ik_iterations = retargeter_config.get('ik_iterations', _DEFAULT_IK_SOLVER_ITERATIONS)
         self.joint_limit_weight = retargeter_config.get('joint_limit_weight', _DEFAULT_JOINT_LIMIT_OBJECTIVE_WEIGHT)
         self.smooth_joint_filter_weight = retargeter_config.get('smooth_joint_filter_weight', _DEFAULT_SMOOTH_JOINT_FILTER_OBJECTIVE_WEIGHT)
+        self.joint_continuity_weights = retargeter_config.get('joint_continuity_weights', {})
         self.post_processing_enabled = retargeter_config.get('enable_post_processing', True)
         self.self_penetration_weight = retargeter_config.get('self_penetration_weight', _DEFAULT_SELF_PENETRATION_OBJECTIVE_WEIGHT)
         self.self_penetration_sub_step_count = retargeter_config.get('self_penetration_sub_step_count', _DEFAULT_SELF_PENETRATION_SUB_STEP_COUNT)
@@ -444,6 +446,12 @@ class SomaRetargetingPipeline:
         if self.smooth_joint_filter_weight > 0.0:
             extra_objectives.append(smooth_joint_filter_objective)
 
+        continuity_objective = None
+        if self.joint_continuity_weights:
+            continuity_objective = IKJointContinuity(
+                self.ik_model, num_envs, self.joint_continuity_weights)
+            extra_objectives.append(continuity_objective)
+
         num_frames_to_remove = self.num_initialization_frames + self.num_stabilization_frames
 
         base_ik_solver = BaseIKSolver(
@@ -470,6 +478,7 @@ class SomaRetargetingPipeline:
             num_frames_to_remove=num_frames_to_remove,
             ik_iterations=self.ik_iterations,
             state=state,
+            continuity_objective=continuity_objective,
         ))
 
         if self.post_processing_enabled:

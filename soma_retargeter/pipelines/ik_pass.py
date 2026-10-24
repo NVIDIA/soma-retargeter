@@ -37,7 +37,8 @@ class BasePass:
         smooth_filter_weight: float,
         num_frames_to_remove: int,
         ik_iterations: int,
-        state
+        state,
+        continuity_objective=None,
     ):
         self._ik_solver = ik_solver
         self._joint_q = joint_q
@@ -84,6 +85,7 @@ class BasePass:
         self._num_frames_to_remove = num_frames_to_remove
         self._ik_iterations = ik_iterations
         self._state = state
+        self._continuity_objective = continuity_objective
 
         if wp.get_device().is_cuda:
             with wp.ScopedCapture() as cap:
@@ -102,6 +104,10 @@ class BasePass:
         Args:
             frame: Current frame index into the input target buffer.
         """
+        if self._continuity_objective is not None:
+            self._continuity_objective.update_reference(
+                self._ik_solver.joint_q, enabled=frame > self._num_frames_to_remove)
+
         if frame <= self._num_frames_to_remove:
             w = self._smooth_filter_weight * (frame / float(self._num_frames_to_remove))
             self._smooth_filter_obj.set_weight(w)
