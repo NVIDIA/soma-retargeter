@@ -1,0 +1,390 @@
+{
+  "h2_pipeline/production/foot/batch_reopt_interior.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/batch_reopt_interior.py",
+    "sha256": "6f3015cf6a1fd6c18fd4d83507204c8cd6eec4d11c84589f800b9e642a077d37"
+  },
+  "h2_pipeline/production/foot/reconstruct_bvh_feet_v14.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/reconstruct_bvh_feet_v14.py",
+    "sha256": "1f6b6ef1daa53b454ec35c74b83c4389c6e41a2f4aac88088de441996521ee3a"
+  },
+  "h2_pipeline/production/foot/native_projection.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/native_projection.py",
+    "sha256": "3d74442307197c3f926d1fe51ae5559de8625b56f089e96597ef9e6e06fb3a84"
+  },
+  "h2_pipeline/production/foot/upper_feasibility.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/upper_feasibility.py",
+    "sha256": "7e594dd249257b30c2c9ed743145a877d31077025cb78904af8f186f124f4bc3"
+  },
+  "h2_pipeline/production/foot/shared_gpu_geometry.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/shared_gpu_geometry.py",
+    "sha256": "573a92c9724f87c6c896f255bfabf7e785dcfe00385479567f9b6786dc54a079"
+  },
+  "h2_pipeline/production/foot/gpu_acceleration.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/gpu_acceleration.py",
+    "sha256": "79020a6b06369d9b2f878a04d699675327998bb5d3578d536d0e79257e82d90e"
+  },
+  "h2_pipeline/production/foot/batch_reopt.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/batch_reopt.py",
+    "sha256": "df47d56ce533b0ce2279793b1a48b91e7abeaa9d844985f85aa52808b9485953"
+  },
+  "h2_pipeline/production/foot/audit_bvh_reconstruction.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/audit_bvh_reconstruction.py",
+    "sha256": "cbac19e090727eb22358a0cc92fc247716ac7b618a3244e5ba143b8402545572"
+  },
+  "h2_pipeline/production/foot/audit_candidates.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/audit_candidates.py",
+    "sha256": "f957bab05f68528e365a25ec08b033143c7a17e5fe1ab693da390e06fc1dee92"
+  },
+  "h2_pipeline/production/foot/batch_reopt_hybrid_parallel.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/batch_reopt_hybrid_parallel.py",
+    "sha256": "2b6e86ead8133c3bcb6d741ba758323b85e714e8402f23b23f0b5be97465278e"
+  },
+  "h2_pipeline/production/foot/batch_reopt_hybrid.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/batch_reopt_hybrid.py",
+    "sha256": "0515ed357731e5bcff97b2efad6737387e4d745d8e5566b0bbdcc93f2ab47a27"
+  },
+  "h2_pipeline/production/foot/batch_reopt_gpu.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/batch_reopt_gpu.py",
+    "sha256": "a2ff2dccf2e23c18d7f7955dde6016c4760d7509131e962db8532adbae30a4e6"
+  },
+  "h2_pipeline/production/foot/interior_qp.py": {
+    "source": "artifacts/h2_foot_trajectory_v10/interior_qp.py",
+    "sha256": "d41fe3acf087d8ea8c4f3a8a859b2f6343b4f9cbb8933aff88defa1c9d734524"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_bvh_reference_worker.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/h2_bvh_reference_worker.py",
+    "sha256": "60f06b02217894e8757a29f1a1ab9019204774781384dbd10505dfbd0f771a1a"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/run_h2_bvh_reference_batch.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/run_h2_bvh_reference_batch.py",
+    "sha256": "a4f51e260b84c98bb12d2b65ea78c58f72006e3e8afb8fb4dec188d6fb002376"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_kinematic_targets.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/h2_kinematic_targets.py",
+    "sha256": "3385831d2150cc5396bd96f2b0601b6b2f566bd813d6defc0aa18304fb34a4eb"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_foot_pose_ik.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/h2_foot_pose_ik.py",
+    "sha256": "fcb7ad027e49574dde944db206a362ca01bf22b7b82424c1ecc7e6bdaffc5b77"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/audit_g1_style_retarget.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/audit_g1_style_retarget.py",
+    "sha256": "6cf01e648495400d20e495bec558dc15b6312a5adbd61455cd657042c9a864dd"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_waist_gpu_ik.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/h2_waist_gpu_ik.py",
+    "sha256": "daff24cc70b2de52d59d99bfffb016c05a6d8d56a605b312839d89852c627762"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_gpu_reference_ik.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/h2_gpu_reference_ik.py",
+    "sha256": "019e462e94d59c299d38441cd8b7cd5529b7c04626d75a243e0a886ad7a2b6fa"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_existing_g1_reference.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/h2_existing_g1_reference.py",
+    "sha256": "ac63c30aec68ac98a58389e17e26e6a792d440dfb87b83566cc1bf43d6fa422e"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/run_h2_bvh_gpu_staged.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/run_h2_bvh_gpu_staged.py",
+    "sha256": "d8df728b3e41698689a5c6397380545ba532174e516d6b9bbf16ca3b31251903"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/refine_h2_bvh_arm_targets.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/refine_h2_bvh_arm_targets.py",
+    "sha256": "8b5ac6bc5d18514872027c8f4b19f5c20e1ee2f4798be9ec6acaa0ccc35d630a"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/fit_h2_bvh_arm_pose_sequence.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/fit_h2_bvh_arm_pose_sequence.py",
+    "sha256": "d0cba2fede2c9397941a1f35dd48d2895bc18f2d36528809281632a70dd6e073"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/select_h2_bvh_pose_candidates.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/select_h2_bvh_pose_candidates.py",
+    "sha256": "7124047905fd6fdd6eb19767420155ba8f2d7f643c1b39c967bdc1f95f16cc2e"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/run_h2_gpu_length_resume.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/run_h2_gpu_length_resume.py",
+    "sha256": "b0bef10ada97c68f6cc0a29443b66f837d8ae860947208956828fe5e2f1e406d"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/refine_h2_wrist_interpolation.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/code/gear_sonic/scripts/refine_h2_wrist_interpolation.py",
+    "sha256": "ae25a0ee978c913562404a260473ee333ca0c488c1395c7258e2d8e3c46629a7"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/run_h2_foot_preserving_reopt.py": {
+    "source": "archive/h2_cleanup_20261104/project/gear_sonic/scripts/run_h2_foot_preserving_reopt.py",
+    "sha256": "40ed496544f94975855008bb1096225db6f071abc290150e8822df93e6713bd4"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_contact_checked_foot_audit.py": {
+    "source": "archive/h2_cleanup_20261104/project/gear_sonic/scripts/h2_contact_checked_foot_audit.py",
+    "sha256": "62231183e0f17eb035a6013cf04c547b7736ddf6eb32cdd10aa33f0819ec8d0b"
+  },
+  "h2_pipeline/production/app/run_h2_full_retarget_dual_gpu.py": {
+    "source": "workspace/soma-retargeter/app/run_h2_full_retarget_dual_gpu.py",
+    "sha256": "2681833f404280bfa8eaed9e09388690283d159bd637877fac8a869f36f53e66"
+  },
+  "h2_pipeline/production/app/__init__.py": {
+    "source": "workspace/soma-retargeter/app/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/app/h2_weight_probe.py": {
+    "source": "workspace/soma-retargeter/app/h2_weight_probe.py",
+    "sha256": "fcea5bc8227288912b9cf7e650fc5fc1418f8c8950823cd843a779ff7db14e11"
+  },
+  "h2_pipeline/production/app/run_h2_parallel_retarget.py": {
+    "source": "workspace/soma-retargeter/app/run_h2_parallel_retarget.py",
+    "sha256": "ede68f6718f6ab3b28fe53cd004413e26e66a3e794acc138ae54fd59822204ba"
+  },
+  "h2_pipeline/production/app/bvh_to_csv_converter.py": {
+    "source": "workspace/soma-retargeter/app/bvh_to_csv_converter.py",
+    "sha256": "9e2f1ae76c4505920ec0e7f246c38ef3b70f2c0dc111378a85ecf7f64e4b27e5"
+  },
+  "h2_pipeline/production/app/tools/ik_weight_optimizer.py": {
+    "source": "workspace/soma-retargeter/app/tools/ik_weight_optimizer.py",
+    "sha256": "0c8055b257dc638346f01c6a30dbd9ac1e00e5938af4dfe4da3e1e97eee765ac"
+  },
+  "h2_pipeline/production/app/tools/robot_config_generator.py": {
+    "source": "workspace/soma-retargeter/app/tools/robot_config_generator.py",
+    "sha256": "8e46ffc87b555afc8ede271ca14e247ae3058369d4bcedd632f7b964695c4bd5"
+  },
+  "h2_pipeline/production/app/tools/assets/ik_optimizer/ik_weight_optimizer_config.json": {
+    "source": "workspace/soma-retargeter/app/tools/assets/ik_optimizer/ik_weight_optimizer_config.json",
+    "sha256": "7aa30d2fcb938d5328dac322627d400c1cc5ee041f3258f5d60c6b1f12e76fdf"
+  },
+  "h2_pipeline/production/app/tools/assets/robot_configurator/robot_config_generator_config.json": {
+    "source": "workspace/soma-retargeter/app/tools/assets/robot_configurator/robot_config_generator_config.json",
+    "sha256": "93f47a2b8697106e34b26244c6bd8b729574cd282abbb0c829ecaebeaba2daeb"
+  },
+  "h2_pipeline/production/soma_retargeter/_version.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/_version.py",
+    "sha256": "87e5256e08a783c9fcc0ccadd343145fc48ea6f0d2afea892c7e62649c753996"
+  },
+  "h2_pipeline/production/soma_retargeter/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/__init__.py",
+    "sha256": "8378f195c55e70c3ca32724fca02c2d821ec1cecba1f3324c1458e2c708a1a58"
+  },
+  "h2_pipeline/production/soma_retargeter/renderers/mesh_renderer.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/renderers/mesh_renderer.py",
+    "sha256": "db6db791fc3cb57e31fcbc33f273ec1157ef940567b3f722b69f0511adfc8be1"
+  },
+  "h2_pipeline/production/soma_retargeter/renderers/base_renderer.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/renderers/base_renderer.py",
+    "sha256": "9da929b78082bd5ed9a5f3b32e1653f48993b53da554e10164f071119f933b64"
+  },
+  "h2_pipeline/production/soma_retargeter/renderers/coordinate_renderer.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/renderers/coordinate_renderer.py",
+    "sha256": "95f3b2d436be65d7728d8d74c673f0f5204f00e5ae5883c232cee03ca14fc0d5"
+  },
+  "h2_pipeline/production/soma_retargeter/renderers/skeleton_renderer.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/renderers/skeleton_renderer.py",
+    "sha256": "2097bfa683b5440076f1e2616e4c8fa7a9fb2839fc17bc552545c99438a23a99"
+  },
+  "h2_pipeline/production/soma_retargeter/renderers/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/renderers/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/soma_retargeter/animation/ik.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/animation/ik.py",
+    "sha256": "df373c7e55aaaafe662ae181010baca9822a4a749a44e1711ec1ea4ca33ff61f"
+  },
+  "h2_pipeline/production/soma_retargeter/animation/mesh.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/animation/mesh.py",
+    "sha256": "25c64cf5eb31f062ef4cc6b8c4a2e724b90cc579c405d5bb4a067aaf4e6aa61e"
+  },
+  "h2_pipeline/production/soma_retargeter/animation/skeleton.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/animation/skeleton.py",
+    "sha256": "2c44e63ad11d3f2a2273f02e3e5c971c83e663ad7bf30dc3a1a2e4105043c60e"
+  },
+  "h2_pipeline/production/soma_retargeter/animation/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/animation/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/soma_retargeter/animation/animation_buffer.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/animation/animation_buffer.py",
+    "sha256": "52b28290638c347bd126f4d715eaeae57e8f8e2b638d38e531e536dff6013378"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/soma_retargeter/utils/io_utils.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/utils/io_utils.py",
+    "sha256": "645c01a9a73c2f93175eed1b0f6e0d8697a35c8764c56332ee002c3e0cf9c836"
+  },
+  "h2_pipeline/production/soma_retargeter/utils/newton_utils.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/utils/newton_utils.py",
+    "sha256": "54734829c6695a96c2ea15dca5eee5ac23190ad64822c617645cf41716f843db"
+  },
+  "h2_pipeline/production/soma_retargeter/utils/space_conversion_utils.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/utils/space_conversion_utils.py",
+    "sha256": "b5f286e34f679af1432f504e3b711bb84ae0045dfd1b2a14ccb2f923d5373407"
+  },
+  "h2_pipeline/production/soma_retargeter/utils/pose_utils.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/utils/pose_utils.py",
+    "sha256": "671ef08972acc2ddae8f61aa71308787cf446f1c55e1ebe8b7003e7a6a84483d"
+  },
+  "h2_pipeline/production/soma_retargeter/utils/time_utils.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/utils/time_utils.py",
+    "sha256": "5c3b1d455cc335ee1d7a1c4ce5b53641c9ef8f3fb072c5a8d8831f7fe4a89187"
+  },
+  "h2_pipeline/production/soma_retargeter/utils/math_utils.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/utils/math_utils.py",
+    "sha256": "bff8da2c26e6c14778b9155176b16f5b1d139a867cb1c9540a2caa358a1f330a"
+  },
+  "h2_pipeline/production/soma_retargeter/utils/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/utils/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/soma_retargeter/assets/usd.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/assets/usd.py",
+    "sha256": "3a097d5284df696203bddb8ae640ac0680c3164f84168348744520cb781d1748"
+  },
+  "h2_pipeline/production/soma_retargeter/assets/bvh.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/assets/bvh.py",
+    "sha256": "5fa71b80c3bd5e7e43fec0b9c9cd7239127983e94f3ced606781083e91171396"
+  },
+  "h2_pipeline/production/soma_retargeter/assets/csv.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/assets/csv.py",
+    "sha256": "f03d73e92d24ea3f5bf03323bfd04b6d17ac4b354b5326b6343f1896876ea335"
+  },
+  "h2_pipeline/production/soma_retargeter/assets/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/assets/__init__.py",
+    "sha256": "d3ae6b109f1f35bc5df30fd6c74b72f5b514393aa78b2459988482620800bfd7"
+  },
+  "h2_pipeline/production/soma_retargeter/pipelines/joint_limit_clamper.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/pipelines/joint_limit_clamper.py",
+    "sha256": "fc9d54ffcc78fbf56654ebad6864e2f25f61764fe0645d0d142c63e7ba7f2180"
+  },
+  "h2_pipeline/production/soma_retargeter/pipelines/feet_stabilizer.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/pipelines/feet_stabilizer.py",
+    "sha256": "cc239702490fd17627f912970b7a7e57a0a25ea8315ef2aa0b6294ac5b80a145"
+  },
+  "h2_pipeline/production/soma_retargeter/pipelines/utils.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/pipelines/utils.py",
+    "sha256": "838661d99e59022621b69a9d6698536d2512474c74ab4bbb14f200e8672c44db"
+  },
+  "h2_pipeline/production/soma_retargeter/pipelines/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/pipelines/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/soma_retargeter/pipelines/newton_pipeline.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/pipelines/newton_pipeline.py",
+    "sha256": "7f126cc5ce1818b01ffcaa210111a314df6c315a4d983e8c687929c246ce8dae"
+  },
+  "h2_pipeline/production/soma_retargeter/pipelines/ik_objectives.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/pipelines/ik_objectives.py",
+    "sha256": "c4e43e79795dc91388992bde7fdf51dcafc36d524e4bd20b634cd69933bb5288"
+  },
+  "h2_pipeline/production/soma_retargeter/pipelines/gpu_target_stream.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/pipelines/gpu_target_stream.py",
+    "sha256": "3f69d9c59c337704800d65c71219843195860daf2f84781cb5cd824f5102cb3b"
+  },
+  "h2_pipeline/production/soma_retargeter/robotics/human_to_robot_scaler.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/robotics/human_to_robot_scaler.py",
+    "sha256": "463270938e7ea07baa568a20133116c8f7c56d7c2c4b1dcc0c2c794cbd3db4e7"
+  },
+  "h2_pipeline/production/soma_retargeter/robotics/csv_animation_buffer.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/robotics/csv_animation_buffer.py",
+    "sha256": "22294f31a67e0df4f24985748a6ca3bc677456d438aca00a1f485020c57b989a"
+  },
+  "h2_pipeline/production/soma_retargeter/robotics/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/robotics/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/t1/t1_feet_stabilizer_config.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/t1/t1_feet_stabilizer_config.json",
+    "sha256": "b8ee1311888b9feac903cdea655736a790c46e0edfa06a81071f41319a700de3"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/t1/soma_to_t1_scaler_config.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/t1/soma_to_t1_scaler_config.json",
+    "sha256": "0edfedbc1d5b20651ad5e120528a3eae2174abc8f69f57fc9dce5605d6cdf327"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/t1/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/t1/__init__.py",
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/t1/soma_to_t1_retargeter_config.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/t1/soma_to_t1_retargeter_config.json",
+    "sha256": "27d6a78543f8053d69b27937337ac77ff241e93d3a8384b03ae154c7a368eec0"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/soma/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/soma/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/h2/soma_to_h2_retargeter_config.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/h2/soma_to_h2_retargeter_config.json",
+    "sha256": "3c4646048d579e81c3c11acb70a5124e28b4b0078ebfec9be4fc7f6c513e5c76"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/h2/soma_to_h2_scaler_config.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/h2/soma_to_h2_scaler_config.json",
+    "sha256": "086e66bf8ab9ab55c621d0971beb8f66a1470c8f5177365a3224065e340bfe63"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/h2/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/h2/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/h2/h2_feet_stabilizer_config.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/h2/h2_feet_stabilizer_config.json",
+    "sha256": "24a750964b0b801597f06c5e5692f51ae5c937d1385a5d666cc087f94a10e346"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/unitree_g1/g1_feet_stabilizer_config.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/unitree_g1/g1_feet_stabilizer_config.json",
+    "sha256": "68ab0dc2318eb91272d6c067de6c3b85c27de6cdab83a7d9d09013f9b75dd738"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/unitree_g1/__init__.py": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/unitree_g1/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/unitree_g1/soma_to_g1_retargeter_config.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/unitree_g1/soma_to_g1_retargeter_config.json",
+    "sha256": "befc09515e3b4f75f85561ec757fd795d03904abade21bb9ed9940363797953e"
+  },
+  "h2_pipeline/production/soma_retargeter/configs/unitree_g1/soma_to_g1_scaler_config.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/soma-retargeter-h2/soma_retargeter/configs/unitree_g1/soma_to_g1_scaler_config.json",
+    "sha256": "1f9da8ae28500a27bea90d2aaf3949df4992e3db7ca0a92fcc58cf8080854efb"
+  },
+  "h2_pipeline/production/profile/retarget.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/profile/retarget.json",
+    "sha256": "932decd2e841e7c1691a5809130dbc0256967f88fe1a6f18b9a3a2934098829f"
+  },
+  "h2_pipeline/production/profile/scaler.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/profile/scaler.json",
+    "sha256": "c007ea9af528afd4814a1c372bf14e560170ea862f91adff340872ab626794df"
+  },
+  "h2_pipeline/production/profile/feet.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/profile/feet.json",
+    "sha256": "de97f059efc23f552260c03e10150dfa67e7f6551303a63cfb26446e8aa43813"
+  },
+  "h2_pipeline/production/profile/profile.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/profile/profile.json",
+    "sha256": "b1bd6a40db89b33f2bd4ece1c0f4cd49028ebcf3cd51be507828bedf40ebad58"
+  },
+  "h2_pipeline/production/profile/reference.json": {
+    "source": "artifacts/h2_bvh_gpu_staged_v5/profile/reference.npz; lossless dtype/value JSON of neutral calibration only",
+    "sha256": "3a6f8f8709304de76e36dc4fff959943d65e00ff3a377a6911199571ef52ae61"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_gpu_foot_preserving_retry.py": {
+    "source": "H100 frozen calibration/model or recovered relative-import audit dependency",
+    "sha256": "f65f1666e0bd83a44b914826ff4f0106cbb72e3dcc7bb82f426137f99c7a664f"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_expansion_audit.py": {
+    "source": "H100 frozen calibration/model or recovered relative-import audit dependency",
+    "sha256": "f7db92393c89382253f7e5d77c79a2a4a9ff349df600f50fd73c322740582ee1"
+  },
+  "h2_pipeline/production/code/gear_sonic/scripts/h2_experimental_foot_audit.py": {
+    "source": "H100 frozen calibration/model or recovered relative-import audit dependency",
+    "sha256": "e8d1324f540b584e3461cc65a4bae426e3053ee96ee4643aca51f75957cbeae8"
+  },
+  "h2_pipeline/production/models/mjcf/h2.xml": {
+    "source": "H100 frozen calibration/model or recovered relative-import audit dependency",
+    "sha256": "897c4c11f0d4e2f618d215540748edd8a314b981f235b786017761808471945d"
+  },
+  "h2_pipeline/production/models/mjcf/g1_29dof_rev_1_0.xml": {
+    "source": "H100 frozen calibration/model or recovered relative-import audit dependency",
+    "sha256": "15a330f1dbff68cdbeb8284be6162a857bdcd21a858f65a8617fb32d5115f209"
+  },
+  "h2_pipeline/production/models/urdf/h2/h2.urdf": {
+    "source": "H100 frozen calibration/model or recovered relative-import audit dependency",
+    "sha256": "be3506900e3eab3a1bc75e079881faa3c7991496cad8a8457b5b90ba958e3a0f"
+  }
+}

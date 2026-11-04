@@ -1,0 +1,127 @@
+{
+  "robot_type": "unitree_g1",
+  "human_root_name": "Hips",
+  "human_height_assumption": 1.8,
+  "joint_scales": {
+      "Hips": 0.82,
+      "Chest": 0.8,
+      "Neck1": 0.8,
+
+      "LeftLeg": 0.86,
+      "RightLeg": 0.86,
+      "LeftShin": 0.86,
+      "RightShin": 0.86,
+      "LeftFoot": 0.82,
+      "RightFoot": 0.82,
+      "LeftToe": 0.78,
+      "RightToe": 0.78,
+      "LeftToeBase": 0.78,
+      "RightToeBase": 0.78,
+
+      "LeftArm": 0.85,
+      "RightArm": 0.85,
+      "LeftForeArm": 0.85,
+      "RightForeArm": 0.85,
+      "LeftHand": 0.85,
+      "RightHand": 0.85
+    },
+  "joint_parents": {
+      "Hips": "",
+      "Chest": "Hips",
+      "Neck1": "Chest",
+      "LeftLeg": "Hips",
+      "RightLeg": "Hips",
+      "LeftShin": "LeftLeg",
+      "RightShin": "RightLeg",
+      "LeftFoot": "LeftShin",
+      "RightFoot": "RightShin",
+      "LeftToe": "LeftFoot",
+      "RightToe": "RightFoot",
+      "LeftToeBase": "LeftFoot",
+      "RightToeBase": "RightFoot",
+      "LeftArm": "Chest",
+      "RightArm": "Chest",
+      "LeftForeArm": "LeftArm",
+      "RightForeArm": "RightArm",
+      "LeftHand": "LeftForeArm",
+      "RightHand": "RightForeArm"
+    },
+    "joint_offsets" : {
+        "Hips": [
+            [0.0, 0.0, 0.01],
+            [0.5, 0.5, 0.5, 0.5]
+        ],
+        "LeftLeg": [
+            [-0.03, 0.036, -0.05],
+            [0.459, -0.538, -0.538, 0.459]
+        ],
+        "LeftShin": [
+            [0.0, 0.04, -0.005],
+            [0.5, -0.5, -0.5, 0.5]
+        ],
+        "LeftFoot": [
+            [-0.017, 0.04, -0.017],
+            [0.695, -0.128, -0.128, 0.695]
+        ],
+        "LeftToe": [
+            [0.025, 0.04, -0.05],
+            [0.703, -0.074, -0.074, 0.703]
+        ],
+        "LeftToeBase": [
+            [-0.17, 0.04, -0.05],
+            [0.703, -0.074, -0.074, 0.703]
+        ],
+        "RightLeg": [
+            [-0.03, -0.036, -0.05],
+            [0.538, 0.459, 0.459, 0.538]
+        ],
+        "RightShin": [
+            [0.0, -0.04, -0.005],
+            [0.5, 0.5, 0.5, 0.5]
+        ],
+        "RightFoot": [
+            [-0.017, -0.04, -0.017],
+            [0.128, 0.695, 0.695, 0.128]
+        ],
+        "RightToe": [
+            [0.025, -0.04, -0.05],
+            [0.074, 0.703, 0.703, 0.074]
+        ],
+        "RightToeBase": [
+            [-0.17, -0.04, -0.05],
+            [0.031, 0.706, 0.706, 0.031]
+        ],
+        "Chest": [
+            [0.005, 0.0, -0.094],
+            [0.478, 0.521, 0.521, 0.478]
+        ],
+        "Neck1": [
+            [0.0, 0.0, 0.0],
+            [0.5, 0.5, 0.5, 0.5]
+        ],
+        "LeftArm": [
+            [0.012, 0.01, -0.034],
+            [-0.5756, -0.5053, 0.4530, 0.4561]
+        ],
+        "LeftForeArm": [
+            [0.012, -0.015, 0.01],
+            [-0.707, 0.0, 0.0, 0.707]
+        ],
+        "LeftHand": [
+            [0.015, -0.006, 0.005],
+            [-0.7071, 0.0, 0.0, 0.7071]
+        ],
+        "RightArm": [
+            [0.012, -0.01, -0.034],
+            [-0.4561, 0.45307, -0.5756, 0.5053]
+        ],
+        "RightForeArm": [
+            [0.012, 0.015, 0.01],
+            [0.0, 0.707, -0.707, 0.0]
+        ],
+        "RightHand": [
+            [0.015, 0.006, 0.005],
+            [0.0, 0.707, -0.707, 0.0]
+        ]
+    }
+}

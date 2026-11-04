@@ -1,0 +1,56 @@
+{
+    "paths": {
+        "assets_root": "assets/robotics"
+    },
+    "soma_joints": [
+        "Hips", "Chest", "Head",
+        "LeftArm", "LeftForeArm", "LeftHand",
+        "RightArm", "RightForeArm", "RightHand",
+        "LeftLeg", "LeftShin", "LeftFoot", "LeftToeBase",
+        "RightLeg", "RightShin", "RightFoot", "RightToeBase"
+    ],
+    "default_soma_weights": {
+        "Hips":         [50.0, 10.0],
+        "Chest":        [0.7,  1.5],
+        "Head":         [0.5,  0.25],
+        "LeftArm":      [1.5,  0.15],
+        "LeftForeArm":  [1.0,  1.0],
+        "LeftHand":     [2.0,  1.2],
+        "RightArm":     [1.5,  0.15],
+        "RightForeArm": [1.0,  1.0],
+        "RightHand":    [2.0,  1.2],
+        "LeftLeg":      [1.5,  0.15],
+        "LeftShin":     [1.0,  1.0],
+        "LeftFoot":     [30.0, 2.0],
+        "RightLeg":     [1.5,  0.15],
+        "RightShin":    [1.0,  1.0],
+        "RightFoot":    [30.0, 2.0],
+        "LeftToeBase":  [1.0,  1.0],
+        "RightToeBase": [1.0,  1.0]
+    },
+    "default_ik_params": {
+        "num_initialization_frames":  10,
+        "num_stabilization_frames":   5,
+        "ik_iterations":              24,
+        "joint_limit_weight":         10.0,
+        "smooth_joint_filter_weight": 5.5,
+        "enable_post_processing":     true,
+        "enable_contact_processing":  true
+    },
+    "mirror_soma_joints": {
+        "LeftArm":      "RightArm",
+        "LeftForeArm":  "RightForeArm",
+        "LeftHand":     "RightHand",
+        "LeftLeg":      "RightLeg",
+        "LeftShin":     "RightShin",
+        "LeftFoot":     "RightFoot",
+        "LeftToeBase":  "RightToeBase",
+        "RightArm":     "LeftArm",
+        "RightForeArm": "LeftForeArm",
+        "RightHand":    "LeftHand",
+        "RightLeg":     "LeftLeg",
+        "RightShin":    "LeftShin",
+        "RightFoot":    "LeftFoot",
+        "RightToeBase": "LeftToeBase"
+    }
+}

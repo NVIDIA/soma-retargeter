@@ -1,19 +1,19 @@
 # SOMA → H2 retarget 기술 인수인계
 
-문서 개정: 2026-09-22 · 원격 대조: `305daa5a5aaa029b10348463d66d40d3ea44e670`.
+문서 개정: 2026-11-04. 최신 경로는 [BVH→CSV→SQP/QP→PKL](01_retarget_pipeline.md)이며 실제 H100 코드를 `h2_pipeline/production/`에 보존했다.
 
 SOMA BVH를 H2의 관절·root reference로 변환하는 절차와 NVIDIA 원본 대비 변경 근거를 정리한다. 기하학적 retarget 검증 후 WBC 저장소에서 동역학적 tracking과 정책 학습을 수행한다.
 
 | 문서 기준 | 값 |
 |---|---|
-| 문서 개정일 | 2026-09-22 |
+| 문서 개정일 | 2026-11-04 |
 | 적용 branch | `h2-retarget-support` |
-| 검토 코드 | `b2d7ce7a5584c2bd290042baed83cf0c69256873` |
+| 검토 코드 | `h2_pipeline/production/source_manifest.json`의 출처/해시 |
 | 실행 환경 | 각 실행 가이드의 사전 조건 참조 |
 
 ## 1. 문서 구성
 
-처음 사용하는 담당자는 **00 실행 가이드**를 순서대로 수행한다. 설계 배경과 과거 실험은 관련 상세 문서에서 확인한다.
+최신 재현에는 **01 Retarget pipeline**을 순서대로 수행한다. 00은 기존 기본 변환기의 사용 방법이고, 설계 배경과 과거 실험은03에 보존한다.
 
 | 순서 | 문서 | 내용 |
 |---|---|---|
@@ -24,11 +24,11 @@ SOMA BVH를 H2의 관절·root reference로 변환하는 절차와 NVIDIA 원본
 
 ## 2. 현재 적용 경로
 
-H2 전용 retarget/scaler/feet 설정을 사용한다. MJCF 경로는 `pipelines/utils.py`의 `_H2_MJCF_PATH`에 지정한다. 이 branch에는 최신 T1의 balanced/sharding 및 전용 audit CLI가 포함되지 않는다.
+`python -m h2_pipeline`은 봉인된 중립 보정·G1 비교·SQP/QP·발 검증·PKL 인계를 제공한다. 최상위 기본 변환기의 H2 MJCF는 `H2_MJCF_PATH` 환경변수로 지정할 수 있다. 두 경로의 설정을 섞지 않는다.
 
 ## 3. 관련 저장소 및 기존 자료
 
-[WBC H2 실행 가이드](https://github.com/MFIWO/GR00T-WholeBodyControl/blob/h2-transfer-dev/docs/h2/00_execution_runbook.md)에서 CSV→PKL 변환, G1 전이 및 학습을 진행한다. WBC 저장소 접근 권한이 필요할 수 있다.
+[WBC H2 실행 가이드](https://github.com/MFIWO/GR00T-WholeBodyControl/blob/h2-transfer-dev/docs/h2/RUNBOOK.md)와 [현재 학습 recipe](https://github.com/MFIWO/GR00T-WholeBodyControl/tree/h2-transfer-dev/recipes/h2_low_work)에서 정책 학습·평가를 진행한다. WBC 저장소 접근 권한이 필요할 수 있다.
 
 ## 4. 근거 및 검증 범위
 

@@ -22,13 +22,18 @@ dependencies = [
     "tqdm==4.67.3",
 ]
 
+[project.optional-dependencies]
+h2 = ["mujoco>=3.3,<4", "osqp>=1.0,<2", "joblib>=1.4,<2", "torch>=2.6"]
+test = ["pytest>=8,<10"]
+
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["soma_retargeter*"]
+include = ["soma_retargeter*", "h2_pipeline*"]
 exclude = ["app*", "assets*", "submodules*"]
 
 [tool.setuptools.package-data]
 soma_retargeter = ["configs/**/*.json", "configs/**/*.bvh", "configs/**/*.usd"]
+h2_pipeline = ["production/**/*.py", "production/**/*.json", "production/**/*.xml", "production/**/*.urdf"]
 
 [tool.setuptools.dynamic]
 version = { attr = "soma_retargeter.__version__" }

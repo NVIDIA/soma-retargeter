@@ -84,7 +84,10 @@ class FeetStabilizer:
 
             wp.copy(self.joint_q, joint_q)
 
-        newton.eval_fk(self.model, self.model.joint_q, self.model.joint_qd, self.state)
+        # Evaluate the freshly copied IK solution. On CPU, joint_q is a copy
+        # rather than an alias of model.joint_q; using the latter resets the
+        # pelvis and knee hints to the model default pose.
+        newton.eval_fk(self.model, self.joint_q.flatten(), self.model.joint_qd, self.state)
 
     def current_state(self):
         """Returns the current joint configuration of the model."""

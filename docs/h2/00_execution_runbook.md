@@ -1,5 +1,7 @@
 # SOMA → H2 retarget 실행 및 검증 절차
 
+이 문서는 기존 기본 변환기의 실행 방법이다. 2026-11-04 H100 중립·팔·발·속도 보정과 SQP/QP→PKL 인계는 [최신 pipeline](01_retarget_pipeline.md)을 따른다.
+
 문서 개정: 2026-09-22 · 원격 대조: `305daa5a5aaa029b10348463d66d40d3ea44e670`.
 
 문서 기준: 2026-09-17 · `h2-retarget-support` · 검토 코드 `b2d7ce7a5584c2bd290042baed83cf0c69256873`.
@@ -146,4 +148,4 @@ git diff -- soma_retargeter/pipelines/utils.py soma_retargeter/configs/h2 \
   > artifacts/h2_local_changes.patch
 ```
 
-별도로 실제 H2 MJCF와 참조 asset hash, BVH/CSV 대응표, FPS·단위, 실패·제외 목록, 전후 preview 결과를 보관한다. CSV의 기하학적 적합성 확인 후 [WBC H2 실행 절차](https://github.com/MFIWO/GR00T-WholeBodyControl/blob/h2-transfer-dev/docs/h2/00_execution_runbook.md)에서 PKL 변환·G1 전이·학습을 진행한다. 자세한 인계 항목은 [검증·인계 문서](02_validation_handoff.md)를 따른다.
+별도로 실제 H2 MJCF와 참조 asset hash, BVH/CSV 대응표, FPS·단위, 실패·제외 목록, 전후 preview 결과를 보관한다. CSV의 기하학적 적합성 확인 후 [WBC H2 실행 절차](https://github.com/MFIWO/GR00T-WholeBodyControl/blob/h2-transfer-dev/docs/h2/RUNBOOK.md)에서 PKL 변환·G1 전이·학습을 진행한다. 자세한 인계 항목은 [검증·인계 문서](02_validation_handoff.md)를 따른다.

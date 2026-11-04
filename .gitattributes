@@ -4,3 +4,6 @@
 *.usd filter=lfs diff=lfs merge=lfs -text
 *.usda filter=lfs diff=lfs merge=lfs -text
 *.gif filter=lfs diff=lfs merge=lfs -text
+
+# Small frozen model definitions are reviewable source, not motion/mesh assets.
+h2_pipeline/production/models/**/*.xml -filter diff merge text

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from enum import IntEnum, auto
+import os
 from pathlib import Path
 
 import newton
@@ -23,7 +24,10 @@ class TargetType(IntEnum):
 
 import pathlib
 
-_H2_MJCF_PATH = pathlib.Path("/root/Downloads/GR00T-WholeBodyControl/gear_sonic/data/assets/robot_description/mjcf/h2.xml")
+_H2_MJCF_PATH = pathlib.Path(os.environ.get(
+    "H2_MJCF_PATH",
+    "/root/Downloads/GR00T-WholeBodyControl/gear_sonic/data/assets/robot_description/mjcf/h2.xml",
+))
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 _T1_MJCF_PATH = _REPO_ROOT / "gear_sonic/data/assets/robot_description/mjcf/T1_23dof.xml"
 

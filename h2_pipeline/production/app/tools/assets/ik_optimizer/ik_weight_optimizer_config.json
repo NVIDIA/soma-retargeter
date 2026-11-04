@@ -1,0 +1,46 @@
+{
+    "target_type": "unitree_h2",
+    "input_folder": "../../../../assets/motions/optimizer",
+    "output_folder": "output",
+    "outer_iterations": 50,
+    "extra_robot_paths": ["assets/robotics"],
+    "ik_weight_update": {
+        "learning_rate": 0.075,
+        "max_scale": 4.0,
+        "protect_root_position": true,
+        "protect_root_rotation": false,
+        "root_rotation_min_scale": 0.7,
+        "hard_clip_emphasis": 1.0
+    },
+    "clip_guard": {
+        "mode": "auto",
+        "penalty_balance": 1.0,
+        "penalty_tail_weight": 0.5,
+        "max_clip_frame_loss_p95_regression": 0.15,
+        "max_aligned_frame_loss_p95_regression": 0.30,
+        "catastrophic_accel_spike_regression": 1.5
+    },
+    "objective": {
+        "smoothness_balance": 0.08
+    },
+    "plot": {
+        "live": true
+    },
+    "effector_priorities": {
+        "position_weights": {
+            "Hips": 5.0,
+            "Chest": 1.2,
+            "LeftFoot": 3.0,
+            "RightFoot": 3.0
+        },
+        "rotation_weights": {
+            "Hips": 1.2,
+            "Chest": 1.0
+        }
+    },
+    "retargeter_overrides": {
+        "enable_post_processing": false,
+        "enable_contact_processing": false,
+        "enable_post_smoothing": false
+    }
+}

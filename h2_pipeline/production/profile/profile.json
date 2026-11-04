@@ -1,0 +1,38 @@
+{
+  "model": "/home/kimm/Downloads/GR00T-WBC-H2/gear_sonic/data/assets/robot_description/mjcf/h2.xml",
+  "model_sha256": "897c4c11f0d4e2f618d215540748edd8a314b981f235b786017761808471945d",
+  "source_reference_sha256": "12bffd3efc9e7fdfda0b97ad4f4b27536ca5bd85fe8f5e1557846c3edb382ccd",
+  "arm_reference_fits": {
+    "Left": {
+      "direction_residual": 1.5341508133315251e-09,
+      "joints": {
+        "left_shoulder_pitch_joint": -0.12183427438847619,
+        "left_shoulder_roll_joint": 0.009142810015122035,
+        "left_shoulder_yaw_joint": 0.10257964847755287,
+        "left_elbow_joint": 0.18602188784975843,
+        "left_wrist_roll_joint": -0.0174785455202029,
+        "left_wrist_pitch_joint": 0.023764538427782735,
+        "left_wrist_yaw_joint": 0.0
+      }
+    },
+    "Right": {
+      "direction_residual": 1.534150390058997e-09,
+      "joints": {
+        "right_shoulder_pitch_joint": -0.12183440352941231,
+        "right_shoulder_roll_joint": -0.009142708443731697,
+        "right_shoulder_yaw_joint": -0.10257850625942334,
+        "right_elbow_joint": 0.18602200686589287,
+        "right_wrist_roll_joint": 0.017478416559665526,
+        "right_wrist_pitch_joint": 0.023764541939198712,
+        "right_wrist_yaw_joint": 0.0
+      }
+    }
+  },
+  "closure_max_m": 3.1031676915590914e-17,
+  "segment_targets": true,
+  "calibrated_offset_count": 19,
+  "active_ik_target_count": 14,
+  "effective_root_scale": 1.0285840102243835,
+  "scope": "Kinematic reference calibration; no dynamic retarget, no existing PKL input.",
+  "reference": "Pure source heading, zero torso roll/pitch, symmetric slight knee bend, parallel feet, source-matched arm directions."
+}

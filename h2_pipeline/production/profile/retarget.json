@@ -1,0 +1,136 @@
+{
+  "initialization_pose": "soma/soma_zero_frame0.bvh",
+  "num_initialization_frames": 10,
+  "num_stabilization_frames": 5,
+  "human_robot_scaler_config": "/home/arrc/lib/groot_wbc/artifacts/h2_bvh_existing_g1_v2/profile/scaler.json",
+  "feet_stabilizer_config": "/home/arrc/lib/groot_wbc/artifacts/h2_bvh_existing_g1_v2/profile/feet.json",
+  "model_height": 1.989272695014625,
+  "ik_iterations": 40,
+  "joint_limit_weight": 10.0,
+  "smooth_joint_filter_weight": 5.5,
+  "collision_weight": 0.0,
+  "enable_post_processing": true,
+  "smooth_joint_filter_objective_body_masks": {
+    "left_shoulder_pitch_link": 0.1,
+    "left_shoulder_roll_link": 1.0,
+    "left_shoulder_yaw_link": 0.3,
+    "right_shoulder_pitch_link": 0.1,
+    "right_shoulder_roll_link": 1.0,
+    "right_shoulder_yaw_link": 0.3
+  },
+  "ik_map": {
+    "Hips": {
+      "t_body": "pelvis",
+      "r_body": "pelvis",
+      "t_weight": 30.0,
+      "r_weight": 10.0
+    },
+    "Chest": {
+      "t_body": "torso_link",
+      "r_body": "torso_link",
+      "t_weight": 0.7,
+      "r_weight": 10.0
+    },
+    "LeftArm": {
+      "t_body": "left_shoulder_roll_link",
+      "r_body": "left_shoulder_roll_link",
+      "t_weight": 1.5,
+      "r_weight": 0.05
+    },
+    "LeftForeArm": {
+      "t_body": "left_elbow_link",
+      "r_body": "left_elbow_link",
+      "t_weight": 5.0,
+      "r_weight": 0.05
+    },
+    "LeftHand": {
+      "t_body": "left_wrist_yaw_link",
+      "r_body": "left_wrist_yaw_link",
+      "t_weight": 10.0,
+      "r_weight": 0.05
+    },
+    "RightArm": {
+      "t_body": "right_shoulder_roll_link",
+      "r_body": "right_shoulder_roll_link",
+      "t_weight": 1.5,
+      "r_weight": 0.05
+    },
+    "RightForeArm": {
+      "t_body": "right_elbow_link",
+      "r_body": "right_elbow_link",
+      "t_weight": 5.0,
+      "r_weight": 0.05
+    },
+    "RightHand": {
+      "t_body": "right_wrist_yaw_link",
+      "r_body": "right_wrist_yaw_link",
+      "t_weight": 10.0,
+      "r_weight": 0.05
+    },
+    "LeftLeg": {
+      "t_body": "left_hip_roll_link",
+      "r_body": "left_hip_roll_link",
+      "t_weight": 1.5,
+      "r_weight": 0.15
+    },
+    "LeftShin": {
+      "t_body": "left_knee_link",
+      "r_body": "left_knee_link",
+      "t_weight": 1.0,
+      "r_weight": 1.0
+    },
+    "LeftFoot": {
+      "t_body": "left_ankle_pitch_link",
+      "r_body": "left_ankle_pitch_link",
+      "t_weight": 30.0,
+      "r_weight": 2.0
+    },
+    "RightLeg": {
+      "t_body": "right_hip_roll_link",
+      "r_body": "right_hip_roll_link",
+      "t_weight": 1.5,
+      "r_weight": 0.15
+    },
+    "RightShin": {
+      "t_body": "right_knee_link",
+      "r_body": "right_knee_link",
+      "t_weight": 1.0,
+      "r_weight": 1.0
+    },
+    "RightFoot": {
+      "t_body": "right_ankle_pitch_link",
+      "r_body": "right_ankle_pitch_link",
+      "t_weight": 30.0,
+      "r_weight": 2.0
+    }
+  },
+  "h2_segment_targets": {
+    "Left": {
+      "lengths": [
+        0.2348609101793161,
+        0.2392265624268101
+      ],
+      "shoulder_from_torso": [
+        0.033827067896376045,
+        0.18159769094595732,
+        0.3395657430373582
+      ]
+    },
+    "torso_from_pelvis": [
+      0.0,
+      0.0,
+      0.08983699999999994
+    ],
+    "Right": {
+      "lengths": [
+        0.23486090507408042,
+        0.23922656295138733
+      ],
+      "shoulder_from_torso": [
+        0.03382707257759142,
+        -0.1815576898358829,
+        0.3395657470618154
+      ]
+    }
+  }
+}

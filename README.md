@@ -130,6 +130,10 @@ Batch mode recursively finds all `.bvh` files in the import folder, processes th
 | `utils/` | Math, pose, coordinate conversion, Newton and Warp helpers. |
 | `configs/` | JSON configuration for retargeting, scaling, and feet stabilization parameters. |
 
+## H2 BVH / trajectory optimization / training handoff
+
+The versioned H100 H2 workflow is available as `python -m h2_pipeline`: calibrated BVH retargeting, frozen G1 comparison, native-time SQP/QP refinement, independent foot/arm/torso checks, and validated CSV-to-PKL export. See [the H2 runbook](docs/h2/01_retarget_pipeline.md) and [validation contracts](docs/h2/02_validation_handoff.md). Existing top-level converter defaults remain available separately.
+
 ## Related Work
 
 SOMA Retargeter is a support tool within the SOMA ecosystem for humanoid motion data:

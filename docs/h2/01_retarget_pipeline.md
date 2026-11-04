@@ -1,76 +1,79 @@
-# SOMA BVH → H2 CSV
+# BVH → H2 CSV → SQP/QP → PKL
 
-문서 개정: 2026-09-22 · 원격 대조: `305daa5a5aaa029b10348463d66d40d3ea44e670`.
+2026-11-04 기준 H100에서 사용한 경로를 `h2_pipeline/`에 보존했다. `production/`에는 Newton IK, 중립 보정, 동결 G1 비교, 상체 SQP, 발 재구성, 독립 검증과 PIQP/OSQP 폴백 구현이 있다. 최상위 SOMA 변환기의 기본 설정과 이 보정 recipe는 구분한다.
 
-작성 기준: 2026-09-17 · `MFIWO/soma-retargeter` / `h2-retarget-support` / `b2d7ce7a5584c2bd290042baed83cf0c69256873`.
+최적화 대상은 로봇 root/관절의 시간 궤적이며 결과도 CSV다. PKL 단계는 단위·관절 순서·쿼터니언을 학습 형식으로 포장하고 실제 float32 결과를 재검사한다. 기존 PKL에서 BVH를 역생성하지 않는다.
 
-본 문서는 명시된 코드 버전의 구현·설정·실험 기록을 기준으로 작성한 기술 인수인계 자료다. 단계별 실행 명령과 확인 기준은 [실행 가이드](00_execution_runbook.md)를 참조한다.
+```mermaid
+flowchart LR
+    B[BVH 원본] --> N[중립·체형 보정 + Newton IK]
+    N --> C[후보 CSV와 원본 목표 trace]
+    G[동결 G1 CSV] --> A[독립 G1/H2 검사]
+    C --> A
+    A --> Q[SQP/QP 보정]
+    Q --> F[120/50/600Hz 독립 검사]
+    F --> P[통과 CSV → float32 PKL]
+    P --> V[실제 PKL 관절·속도·발 검사]
+```
 
-원본 대비 수치·코드 변경과 개발 당시 튜닝 기록은 [변경 및 검증 이력](03_upstream_changes_and_tuning.md)에 정리했다. IK joint filter weight, 시간축 filtering, actuator PD gain을 구분한다.
+## 환경과 입력
 
-## 1. 환경과 asset
+Python3.12 이상과 저장소의 Newton/Warp 환경을 사용한다. CPU 검사/보정에는 `pip install -e '.[h2,test]'`의 MuJoCo·SciPy·OSQP·joblib·PyTorch도 필요하다. 기존 환경에 영향을 주지 않도록 별도 환경을 사용한다. 원본 BVH, 같은 모션의 기존 G1 CSV, H2/G1 메시를 준비한다. 로봇 자산은 [GR00T-WholeBodyControl/h2-transfer-dev](https://github.com/MFIWO/GR00T-WholeBodyControl/tree/h2-transfer-dev)의 `gear_sonic/data/assets/robot_description/`에서 읽는다. Git LFS 포인터만 있으면 준비가 실패한다.
+
+selection은 `{"motions":[{"key":"BVH_파일명_확장자제외"}]}` 형식이다. 중복 basename과 빠진 G1 CSV는 허용하지 않는다. 기존 G1 CSV는 cm/degree, 비교용 내부 사본은 m/radian이다. 이 recipe의 원본 시간 기준은120Hz다.
 
 ```bash
-git clone --branch h2-retarget-support --single-branch \
-  https://github.com/MFIWO/soma-retargeter.git soma-retargeter-h2
-cd soma-retargeter-h2
-git lfs install
-git lfs pull
-conda create -n soma-retargeter-h2 python=3.12 pip tk -y
-conda activate soma-retargeter-h2
-python -m pip install -e .
+python -m h2_pipeline prepare \
+  --workspace /absolute/path/to/NEW_h2_workspace \
+  --groot-root /absolute/path/to/GR00T-WholeBodyControl \
+  --selection /absolute/path/to/selection.json \
+  --bvh-root /absolute/path/to/original_bvh \
+  --g1-csv-root /absolute/path/to/existing_g1_csv --limit 2
 ```
 
-이미 준비된 환경은 재생성할 필요가 없다. 이 브랜치 `pyproject.toml`은 Python ≥3.12, Newton 1.0.0, warp-lang 1.12.0 등을 고정한다. 원래 [설치 안내](../../README.md)와 [의존성](../../pyproject.toml)을 함께 확인한다. LFS pointer만 받아 실제 로봇 asset이 비어 있지 않은지 확인한다.
+처음에는 `--limit 2`로 확인한다. 전체 변환은 새로운 작업 폴더에서 제한 없이 준비한다. 원본을 변경하지 않고 코드·모델 정의·중립 보정 수치를 복사하며 큰 메시만 읽기 연결한다. 연결 메시까지 해시로 봉인한다. 복사된 코드의 H100 절대 경로와 Python 경로만 치환하고 목적 함수·통과 기준은 유지한다. `workspace.json`에 치환 전후 해시를 남긴다.
 
-## 2. 입력과 출력의 로컬 설정
-
-BONES-SEED의 SOMA BVH와 데이터 사용 조건을 준비한다. checked-in JSON에는 작성자의 절대 경로가 들어 있으므로 로컬 복사본으로 바꾼다. 실행 위치는 repository root다.
+## BVH를 CSV로 재구성
 
 ```bash
-mkdir -p artifacts
-cp assets/default_bvh_to_csv_converter_config.json artifacts/h2_local.json
+python -m h2_pipeline retarget \
+  --workspace /absolute/path/to/NEW_h2_workspace --workers 4
 ```
 
-복사한 JSON을 다음 구조로 편집한다. `/absolute/path/...`는 실제 존재하는 경로로 바꾼다. converter는 import/export를 JSON에서 읽는다.
+이 단계는 GPU0/1을 사용한다. Newton/Warp용 Python이 따로 있으면 `--soma-python /path/to/soma-env/bin/python`을 지정한다. 초기 IK, CUDA 궤적 보정, CPU 독립 비교 검사 순서다. `--stop-after raw` 또는 `refine`으로 단계 경계를 나눌 수 있다. G1 IK는 다시 실행하지 않는다.
 
-```json
-{
-  "import_folder": "/absolute/path/to/soma_uniform/bvh",
-  "export_folder": "/absolute/path/to/h2_csv",
-  "batch_size": 4,
-  "retargeter": "Newton",
-  "retarget_source": "soma",
-  "retarget_target": "h2",
-  "retarget_source_facing_direction": "Mujoco"
-}
-```
+중립은 source heading을 보존한 기준 자세, 몸통 roll/pitch, 대칭의 약한 무릎 굽힘, 평행한 발과 원본 팔 방향을 이용한 보정이다. 실제 숙임·회전을 항상 허리0으로 만들지는 않는다. 팔은 사람의 어깨→팔꿈치→손 방향과 로봇 분절 길이로 재구성하며 손목 방향도 검사한다. 몸통 좌우 추종 오차 검사는 양발 하중50:50의 동역학 검사와 다르다.
 
-## 3. 소수 clip부터 변환
+## 보류 CSV의 SQP/QP
 
 ```bash
-python app/bvh_to_csv_converter.py \
-  --config artifacts/h2_local.json --viewer null --device cpu
+python -m h2_pipeline plan --workspace /absolute/path/to/NEW_h2_workspace
+python -m h2_pipeline optimize \
+  --workspace /absolute/path/to/NEW_h2_workspace --workers 4 --dry-run
+python -m h2_pipeline optimize \
+  --workspace /absolute/path/to/NEW_h2_workspace --workers 4 --backend osqp
 ```
 
-`--viewer gl`로 source/robot 포즈를 확인할 수 있다. CPU 예시는 기능 확인용이며 대규모 throughput 보장은 아니다. `batch_size`는 retarget batch 크기이고 PPO의 env 수가 아니다. 출력은 입력 상대 디렉터리 구조에 대응하는 CSV다.
+기본 CPU OSQP 경로는 관절 범위·URDF 속도·어깨/손목2도 여유, 원본 시간축과 root 회전, 발 지면 제약을 유지한다. 필요하면 root 이동/다리를 먼저 보정하고 이후 발·root를 보존하면서 상체를 푼다. BVH에서 만든 상체 목표를 먼저 동결하고, 완료된 목표 자체로 초기화하지 않는 별도 재최적화로 추종을 확인한다. 원본 BVH 대비 주요 오차 비악화와 독립 발 검사까지 통과해야 `validated/`에 남는다.
 
+빠른 PIQP 경로를 사용하려면 `piqp==0.6.4`를 작업 폴더의 `artifacts/h2_foot_trajectory_v10/vendor_piqp/`에 설치하고 `--backend piqp`를 사용한다. 이 경로는 공유 CUDA 기하 계산을 사용한다. PIQP 해를 원래 QP 행렬·잔차 허용값으로 검사하고 실패하면 원래 CPU OSQP로 돌아간다. 몸통 범주는 기존 전체 OSQP 경로를 유지하며 최종 기준 미달이면 기존 전체 경로로 한 번 재시도한다. 병렬 기본값은4이고 과거192개 실행을 자동으로 재현하지 않는다.
 
-## H2 target 구성
+## 통과 CSV만 PKL로 인계
 
-`soma_to_h2_retargeter_config.json`은 `Hips→pelvis`, `Chest→torso_link`, 손 target→wrist yaw link, 발 target→ankle roll link를 사용한다. scaler/feet-stabilizer도 H2 전용 JSON을 연결한다. 설정의 `model_height=1.8`은 retarget 모델 스케일 값이다.
+```bash
+python -m h2_pipeline publish \
+  --workspace /absolute/path/to/NEW_h2_workspace \
+  --out /absolute/path/to/NEW_h2_pkl \
+  --smpl-root /absolute/path/to/paired_smpl \
+  --soma-root /absolute/path/to/paired_soma
+```
 
-코드 기준 IK 50회, joint-limit weight 50, smooth weight 30, collision weight 0, initialization/stabilization 10/5 frame이다. 발 위치·몸통·손 가중치를 바꿀 때 walking뿐 아니라 squat, turn, hand reach를 함께 비교한다. post-processing이 켜져 있어도 동역학적 균형을 보증하지 않는다.
+출력도 새 폴더여야 한다. SMPL/SOMA 인자는 선택적 대응 파일 해시 기록용이다. 조인트를 임의 합성하지 않으며 실제 학습에는 대응 데이터·시간 정렬·학습 manifest 검증도 필요하다.
 
-이 브랜치의 converter에는 T1 최신 브랜치의 `--num-shards`, `--shard-index`, `--batch-size` 추가 옵션이 없다. batch 크기는 JSON에서 수정한다. T1 README의 CLI를 그대로 복사하지 않는다.
+- 원본 또는 새 H2 통과 보고서와 CSV 해시, 원본 BVH/G1/trace 해시를 확인한다.
+- 내부 CSV는 **m/radian**, 원본120Hz/frame ID를 보존한다. 공식 CSV의 **cm/degree**와 섞어 추측하지 않는다.
+- PKL은 MJCF 관절 이름 순서, root quaternion **XYZW**, float32 `dof/root_trans_offset/root_rot/pose_aa`, `fps` 계약을 따른다.
+- 실제 float32 출력으로 관절·속도·여유와120/50/600Hz의 원본 BVH 기반 발 높이·침투·접지 목표를 재계산한다. 포장할 때 root를 추가로 올리지 않는다.
+- 통과만 `motion/`·`catalog.json`에 들어간다. 보류 사유는 `requires_review.json`에 남기고 학습 풀을 자동 수정하지 않는다.
 
-
-## 4. 다음 단계
-
-[CSV 검증과 학습 인계](02_validation_handoff.md)를 통과한 자료만 학습 manifest에 포함한다. 이 단계에서는 RL 학습이나 실기 명령을 실행하지 않는다.
-
-## 구현 근거
-
-- [app/bvh_to_csv_converter.py](https://github.com/MFIWO/soma-retargeter/blob/b2d7ce7a5584c2bd290042baed83cf0c69256873/app/bvh_to_csv_converter.py)
-- [soma_retargeter/configs/h2/soma_to_h2_retargeter_config.json](https://github.com/MFIWO/soma-retargeter/blob/b2d7ce7a5584c2bd290042baed83cf0c69256873/soma_retargeter/configs/h2/soma_to_h2_retargeter_config.json)
-- [soma_retargeter/pipelines/newton_pipeline.py](https://github.com/MFIWO/soma-retargeter/blob/b2d7ce7a5584c2bd290042baed83cf0c69256873/soma_retargeter/pipelines/newton_pipeline.py)
+이번 게시 검증에서는 현재 H100 학습을 보호하기 위해 새 BVH GPU 전량 변환을 실행하지 않았다. 단위·이름 매핑·프레임·해시 시험, 실제 자산을 이용한 격리 준비, 기존 결과의 CPU 재검사를 구분해 기록한다. 운동학 통과를 정책 추종·자기충돌 전체·실기 안정성 보증으로 사용하지 않는다.
