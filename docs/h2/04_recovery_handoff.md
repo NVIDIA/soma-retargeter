@@ -32,7 +32,8 @@ NumPy/SciPy 외에 실제 QP 경로에는 OSQP와 선택한 solver가 필요하�
 학습 데이터의 inventory와 비교용 viewer다. prepare는 파일 목록을 만들며 데이터를
 자동으로 옮기지 않는다. 각각 `--help`에서 host·port·입력 경로를 지정한다.
 
-과거 실험별 제어 코드·receipt·로그·모델은 비공개
+과거 실험별 고유 제어 코드·설정은 비공개
 `MFIWO/GR00T-WholeBodyControl`의 `h2-transfer-dev` 브랜치
-`preservation/h2_20261109/`에 byte 단위 hash로 보존한다. 이 공개 저장소에는 개인
-Pico 기록이나 모델 가중치를 넣지 않는다. 복구 방법은 WBC의 `docs/h2/HANDOFF.md`에 있다.
+`archive/h2_20261109/`에 경로와 내용 hash로 보존한다. 이 공개 저장소에는 개인
+Pico 기록이나 모델 가중치를 넣지 않는다. 원본 로그·모델은 Git 전송 대상이 아니다.
+이관 범위와 로컬 보관 위치는 WBC의 `docs/h2/HANDOFF.md`에 있다.
